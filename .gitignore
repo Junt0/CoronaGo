@@ -1,4 +1,4 @@
-#/django-server/CoronaGo/keys.py
+/django-server/CoronaGo/keys.py
 /django-server/venv
 .idea
 CoronaGo/__pycache__/
