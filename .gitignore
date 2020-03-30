@@ -2,3 +2,4 @@
 /django-server/venv
 .idea
 CoronaGo/__pycache__/
+/django-server/CoronaGo/local_keys.py

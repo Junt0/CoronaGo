@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-from . import keys
+from . import local_keys as keys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,7 +38,30 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_app.apps.RestAppConfig',
+    'rest_framework.authtoken',
+    'rest_framework',
+
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute',
+        'user': '1000/day'
+    }
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -51,6 +74,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'CoronaGo.urls'
+CSRF_USE_SESSIONS = False
+
 
 TEMPLATES = [
     {
@@ -125,3 +150,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATICFILES_DIR = [
+    os.path.join(BASE_DIR, 'CoronaGo/static/'),
+]
+
+# Email stuff
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = keys.EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = keys.EMAIL_HOST_PASSWORD
+EMAIL_PORT = 587
+
+# Site domain
+SITE_DOMAIN = 'coronago.net'

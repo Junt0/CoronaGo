@@ -1,0 +1,14 @@
+{% autoescape off %}
+A word from the creators
+
+Hi {{ profile.user.username }},
+As the two high schoolers who co-created this app, we personally want to thank you for trying our app!
+We have put in a ton of time into creating the first release all within one week. It's not the most polished
+experience, but we encourage you to stick around as we improve the app.
+
+Anyways, here's what you came for
+
+Please click on the link to confirm your registration,
+https://{{ domain }}{% url 'verify_email' uidb64=uid token=token %}
+
+{% endautoescape %}
