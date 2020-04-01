@@ -43,3 +43,27 @@ class TestProfileSerializer(APITestCase):
         }
         self.assertEquals(expected_data, actual_data)
 
+
+class TestUserInteractionSerializer(APITestCase):
+    def setUp(self) -> None:
+        self.test_user1 = User.objects.create(first_name="name1", last_name="name1last", username="username1",
+                                              email="test1@gmail.com")
+        self.test_prof1 = Profile.objects.create(user=self.test_user1, risk=0.2)
+        self.meet_time = timezone.now()
+        self.test_user2 = User.objects.create(first_name="name2", last_name="name2last", username="username2",
+                                              email="test2@gmail.com")
+        self.test_prof2 = Profile.objects.create(user=self.test_user2, risk=0.4)
+
+        self.interaction = UserInteraction.objects.create(meet_time=self.meet_time)
+        self.interaction.add_participants([self.test_prof1, self.test_prof2])
+
+    def test_serialization(self):
+        serializer = UserInteractionSerializer(self.interaction)
+
+        data = serializer.data
+
+        self.assertTrue('unique_id' in data.keys())
+        self.assertTrue('meet_time' in data.keys())
+        self.assertTrue('end_time' in data.keys())
+        self.assertTrue('creator' in data.keys())
+        self.assertEquals(len(data['participants']), 2)

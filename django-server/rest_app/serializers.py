@@ -10,17 +10,18 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
 
-class UserInteractionSerializer(serializers.ModelSerializer):
-    participants = UserSerializer(many=True)
-
-    class Meta:
-        model = UserInteraction
-        fields = ['unique_id', 'meet_time', 'end_time', 'creator', 'participants']
-
-
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:
         model = Profile
         fields = ['user', 'risk']
+
+
+class UserInteractionSerializer(serializers.ModelSerializer):
+    participants = ProfileSerializer(many=True)
+    creator = ProfileSerializer()
+
+    class Meta:
+        model = UserInteraction
+        fields = ['unique_id', 'meet_time', 'end_time', 'creator', 'participants']
