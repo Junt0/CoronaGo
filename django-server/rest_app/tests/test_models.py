@@ -54,9 +54,9 @@ class TestInteractionTests(TestCase):
     def test_add_users_interaction(self):
         self.meet_time = timezone.now()
         self.interaction = UserInteraction.objects.create(meet_time=self.meet_time)
-        self.interaction.users.add(self.test_user1)
-        self.interaction.users.add(self.test_user2)
+        self.interaction.add_participants([self.test_user1])
+        self.interaction.add_participants([self.test_user2])
 
-        user_count = self.interaction.users.all().count()
+        user_count = self.interaction.participants.all().count()
         self.assertEqual(user_count, 2)
 

@@ -39,16 +39,18 @@ class Profile(models.Model):
     def send_verification_email(self):
         if not self.user.is_active:
             mail_subject = 'Activate Your CoronaGo Account'
-            message = render_to_string('VerifyEmail.html', {
+            template_context = {
                 'profile': self,
                 'domain': settings.SITE_DOMAIN,
                 'uid': urlsafe_base64_encode(force_bytes(self.user.pk)),
                 'token': tokens.account_activation_token.make_token(self.user),
-            })
+            }
+            message = render_to_string('VerifyEmail.html', template_context)
             email = EmailMessage(
                 mail_subject, message, to=[self.user.email]
             )
             email.send()
+            return template_context
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
