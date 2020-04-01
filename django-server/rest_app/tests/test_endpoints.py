@@ -208,6 +208,7 @@ class TestInteractionEndpoints(APITestCase):
 
         self.assertEquals(parsed['interaction_code'], str(interaction.unique_id))
         self.assertEquals(parsed['success'], 'Interaction was joined successfully!')
+        self.assertEquals(response.status_code, 200)
 
         # Tests user is added to interaction
         self.assertTrue(self.test_profile.has_running_interactions)
@@ -225,4 +226,39 @@ class TestInteractionEndpoints(APITestCase):
         url = reverse('join_interaction', kwargs={'code': interaction.unique_id})
         response = self.client.get(url)
         parsed = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
         self.assertEquals(parsed['error'], 'You are only able to have one interaction running at a time')
+
+    def test_end_interaction_is_creator(self):
+        interaction = UserInteraction.start(creator=self.test_profile)
+        interaction.add_participants([self.test_profile])
+        self.assertFalse(interaction.has_ended)
+
+        # Tests response that it ended the interaction
+        url = reverse('end_interaction', kwargs={'code': interaction.unique_id})
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(parsed['success'], 'The interaction was ended')
+
+        # Tests that the interaction was actually ended
+        interaction = UserInteraction.objects.get(creator=self.test_profile)
+        self.assertTrue(interaction.has_ended)
+
+    def test_end_interaction_is_not_creator(self):
+        new_user = User.objects.create(username="blah", password="fake password", email="fake@email.com")
+        prof = Profile.brand_new(user=new_user)
+        interaction = UserInteraction.start(creator=prof)
+        interaction.add_participants([self.test_profile])
+        self.assertFalse(interaction.has_ended)
+
+        # Tests response that it ended the interaction
+        url = reverse('end_interaction', kwargs={'code': interaction.unique_id})
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(parsed['error'], 'The creator of the interaction can only end it')
+
+        # Tests that the interaction was not ended
+        interaction = UserInteraction.objects.get(creator=prof)
+        self.assertFalse(interaction.has_ended)

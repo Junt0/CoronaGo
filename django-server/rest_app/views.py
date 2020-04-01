@@ -90,9 +90,16 @@ class EndInteraction(APIView):
         interaction = self.get_object(code)
         if self.is_creator(request.user, interaction):
             interaction.end()
+            return Response({
+                'success': 'The interaction was ended'
+            })
+        else:
+            return Response({
+                'error': 'The creator of the interaction can only end it'
+            })
 
-    def is_creator(self, user: User, interaction: UserInteraction):
-        return user == interaction.creator.user
+    def is_creator(self, profile: Profile, interaction: UserInteraction):
+        return profile == interaction.creator.user
 
 
 class AuthSignup(APIView):

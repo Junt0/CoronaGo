@@ -7,6 +7,7 @@ from rest_app.models import Profile, UserInteraction
 from django.utils import timezone
 import pytz
 
+# TODO make test to check that participants are not added as duplicates in many to many
 
 class ProfileTests(TestCase):
     def setUp(self):
