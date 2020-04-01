@@ -41,7 +41,7 @@ class CreateInteraction(APIView):
 
     def get(self, request):
         prof = Profile.objects.get(user=request.user)
-        if self.no_other_interactions(prof):
+        if prof.has_running_interactions is False:
             interaction = UserInteraction.start(creator=prof)
 
             return Response({
@@ -51,10 +51,6 @@ class CreateInteraction(APIView):
             return Response({
                 'error': 'You are only able to have one interaction running at a time'
             })
-
-
-    def no_other_interactions(self, profile):
-        return profile.interactions is None
 
 
 class JoinInteraction(APIView):
@@ -67,20 +63,18 @@ class JoinInteraction(APIView):
             raise Http404
 
     def get(self, request, code):
-        prof = Profile.objects.get(user=request.user)
-        if self.no_other_interactions(prof):
+        user_profile = Profile.objects.get(user=request.user)
+        if user_profile.has_running_interactions is False:
             interaction = self.get_interaction(code)
-            interaction.add_participants([request.user])
+            interaction.add_participants([user_profile])
             return Response({
-                'success': f'Interaction: {interaction.unique_id} was joined successfully'
+                'interaction_code': interaction.unique_id,
+                'success': 'Interaction was joined successfully!'
             })
         else:
             return Response({
                 'error': 'You are only able to have one interaction running at a time'
             })
-
-    def no_other_interactions(self, profile):
-        return profile.interactions is None
 
 
 class EndInteraction(APIView):
@@ -154,6 +148,7 @@ class VerifyAccount(View):
                 return HttpResponse('Thank you for your email confirmation. Now you may login your account.')
         else:
             return HttpResponse('This activation link has expired!')
+
 
 class AuthGetToken(ObtainAuthToken):
 

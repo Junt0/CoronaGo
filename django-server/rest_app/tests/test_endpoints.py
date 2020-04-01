@@ -185,9 +185,44 @@ class TestInteractionEndpoints(APITestCase):
 
     def test_create_interaction_has_others(self):
         interaction = UserInteraction.start(creator=self.test_profile)
+        self.assertTrue(self.test_profile.has_running_interactions)
 
         url = reverse('create_interaction')
         response = self.client.get(url)
         parsed = json.loads(response.content)
 
         self.assertEquals('You are only able to have one interaction running at a time', parsed['error'])
+
+    def test_join_interaction_no_others(self):
+        # Sets up user with interaction
+        new_user = User.objects.create(username="blah", password="fake password", email="fake@email.com")
+        prof = Profile.brand_new(user=new_user)
+        self.assertFalse(self.test_profile.has_running_interactions)
+
+        interaction = UserInteraction.start(creator=prof)
+
+        # Tests response that the user joined the interaction
+        url = reverse('join_interaction', kwargs={'code': interaction.unique_id})
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+
+        self.assertEquals(parsed['interaction_code'], str(interaction.unique_id))
+        self.assertEquals(parsed['success'], 'Interaction was joined successfully!')
+
+        # Tests user is added to interaction
+        self.assertTrue(self.test_profile.has_running_interactions)
+
+    def test_join_interaction_has_others(self):
+        new_user = User.objects.create(username="blah", password="fake password", email="fake@email.com")
+        prof = Profile.brand_new(user=new_user)
+
+        # Asserts that the user is already in an interaction for the remainder of the test
+        interaction = UserInteraction.start(creator=prof)
+        interaction.add_participants([self.test_profile])
+        self.assertTrue(self.test_profile.has_running_interactions)
+
+        # Tests response that the was not allowed to join the interaction
+        url = reverse('join_interaction', kwargs={'code': interaction.unique_id})
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+        self.assertEquals(parsed['error'], 'You are only able to have one interaction running at a time')
