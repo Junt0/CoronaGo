@@ -12,6 +12,9 @@ class ProfileTests(TestCase):
     def setUp(self):
         self.test_user = User.objects.create(username="test username", password="test_pass", email="test@gmail.com")
         self.test_profile = Profile.objects.create(user=self.test_user, risk=0.1)
+        self.test_user2 = User.objects.create(first_name="name2", last_name="name2last", username="username2",
+                                              email="test2@gmail.com")
+        self.test_user2 = Profile.objects.create(user=self.test_user2, risk=0.4)
 
     def test_user_profile_creation(self):
         self.assertEqual(self.test_profile.user, self.test_user)
@@ -41,6 +44,20 @@ class ProfileTests(TestCase):
         self.assertEquals(new_prof.user, new_user)
         self.assertEquals(new_prof.risk, 0)
 
+    def test_get_interactions(self):
+        self.meet_time = timezone.now()
+        self.interaction = UserInteraction.objects.create(meet_time=self.meet_time)
+        self.interaction.add_participants([self.test_profile, self.test_user2])
+        result = self.test_profile.interactions
+        self.assertEquals(self.interaction, result)
+
+    def test_get_interactions_none(self):
+        self.meet_time = timezone.now()
+        self.interaction = UserInteraction.objects.create(meet_time=self.meet_time)
+        self.interaction.add_participants([])
+        result = self.test_profile.interactions
+        self.assertEquals(None, result)
+
 
 class TestInteractionTests(TestCase):
     def setUp(self) -> None:
@@ -54,9 +71,7 @@ class TestInteractionTests(TestCase):
     def test_add_users_interaction(self):
         self.meet_time = timezone.now()
         self.interaction = UserInteraction.objects.create(meet_time=self.meet_time)
-        self.interaction.add_participants([self.test_user1])
-        self.interaction.add_participants([self.test_user2])
+        self.interaction.add_participants([self.test_user1, self.test_user2])
 
         user_count = self.interaction.participants.all().count()
         self.assertEqual(user_count, 2)
-

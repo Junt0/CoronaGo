@@ -52,6 +52,13 @@ class Profile(models.Model):
             email.send()
             return template_context
 
+    @property
+    def interactions(self):
+        try:
+            interaction = UserInteraction.objects.get(participants__in=[self])
+            return interaction
+        except UserInteraction.DoesNotExist as e:
+            return None
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -65,7 +72,6 @@ class UserInteraction(models.Model):
 
     meet_time = models.DateTimeField(auto_created=True)
     end_time = models.DateTimeField(null=True)
-    ended = models.BooleanField(default=False)
 
     creator = models.ForeignKey(Profile, on_delete=models.SET_NULL, related_name="creator", null=True)
     participants = models.ManyToManyField(Profile, related_name="participants")
