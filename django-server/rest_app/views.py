@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 from rest_app.custom_permissions import IsVerified
 from rest_app.models import Profile, UserInteraction
 from rest_app.tokens import account_activation_token
-from .serializers import UserSerializer, GroupSerializer, ProfileSerializer
+from .serializers import UserSerializer, ProfileSerializer
 from rest_framework import generics, mixins
 from django.middleware.csrf import get_token
 
@@ -28,7 +28,7 @@ def home(request):
     return render(request, 'home.html')
 
 
-class GetRequestUserInfo(APIView):
+class RequestUserInfo(APIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get(self, request):
