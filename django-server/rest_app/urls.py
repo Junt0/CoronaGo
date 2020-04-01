@@ -22,10 +22,10 @@ router = routers.DefaultRouter()
 urlpatterns = [
     path('', views.home, name="home"),
 
-    path('api/interaction/create', views.GenerateInteraction.as_view()),
+    path('api/interaction/create', views.CreateInteraction.as_view(), name="create_interaction"),
     path('api/interaction/join/<uuid:code>', views.JoinInteraction.as_view()),
     path('api/interaction/end/<uuid:code>', views.EndInteraction.as_view()),
-    path('api/user/<int:id>', views.GetUserInfo.as_view(), name="info_self"),
+    path('api/user/<int:pk>', views.RequestUserProf.as_view(), name="profile_info"),
 
     path('api/auth/', views.AuthGetToken.as_view(), name="get_token"),
     path('api/auth/signup', views.AuthSignup.as_view(), name="signup"),

@@ -60,6 +60,7 @@ class Profile(models.Model):
         except UserInteraction.DoesNotExist as e:
             return None
 
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
@@ -70,14 +71,14 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class UserInteraction(models.Model):
     unique_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    meet_time = models.DateTimeField(auto_created=True)
+    meet_time = models.DateTimeField(auto_now=True)
     end_time = models.DateTimeField(null=True)
 
     creator = models.ForeignKey(Profile, on_delete=models.SET_NULL, related_name="creator", null=True)
     participants = models.ManyToManyField(Profile, related_name="participants")
 
     @classmethod
-    def start(cls, creator: User):
+    def start(cls, creator: Profile):
         # interactions are considered ended
         interaction = UserInteraction.objects.create(creator=creator)
         interaction.participants.add(creator)

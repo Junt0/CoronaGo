@@ -18,69 +18,69 @@ from rest_framework.views import APIView
 from rest_app.custom_permissions import IsVerified
 from rest_app.models import Profile, UserInteraction
 from rest_app.tokens import account_activation_token
-from .serializers import UserSerializer, ProfileSerializer
+from .serializers import UserSerializer, ProfileSerializer, UserSignupSerializer
 from rest_framework import generics, mixins
 from django.middleware.csrf import get_token
 
 
 def home(request):
-
     return render(request, 'home.html')
 
 
-class RequestUserInfo(APIView):
+class RequestUserProf(APIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
-    def get(self, request):
-        user_obj = User.objects.get(user=request.user)
+    def get(self, request, pk):
+        user_obj = User.objects.get(id=pk)
         profile = Profile.objects.get(user=user_obj)
-        return ProfileSerializer(profile)
+        return Response(ProfileSerializer(profile).data)
 
 
-class GenerateInteraction(APIView):
+class CreateInteraction(APIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
     def get(self, request):
-        if self.no_other_interactions(request.user):
-            interaction = UserInteraction.start(creator=request.user)
+        prof = Profile.objects.get(user=request.user)
+        if self.no_other_interactions(prof):
+            interaction = UserInteraction.start(creator=prof)
 
             return Response({
                 'interaction_code': interaction.unique_id
             })
+        else:
+            return Response({
+                'error': 'You are only able to have one interaction running at a time'
+            })
 
-    def no_other_interactions(self, user):
-        running_interactions = UserInteraction.objects.filter(creator=user, ended=False).count()
-        return running_interactions == 0
+
+    def no_other_interactions(self, profile):
+        return profile.interactions is None
 
 
 class JoinInteraction(APIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
-    def get_object(self, uuid):
+    def get_interaction(self, uuid):
         try:
             return UserInteraction.objects.get(unique_id=uuid)
         except UserInteraction.DoesNotExist:
             raise Http404
 
     def get(self, request, code):
-        try:
-            self.close_prev_interaction(request.user)
-            interaction = self.get_object(code)
+        prof = Profile.objects.get(user=request.user)
+        if self.no_other_interactions(prof):
+            interaction = self.get_interaction(code)
             interaction.add_participants([request.user])
             return Response({
-                'success': 'This interaction was joined'
+                'success': f'Interaction: {interaction.unique_id} was joined successfully'
             })
-
-        except Exception as e:
+        else:
             return Response({
-                'error': 'An error occurred trying to join this interaction'
+                'error': 'You are only able to have one interaction running at a time'
             })
 
-    def close_prev_interaction(self, user):
-        running_interactions = UserInteraction.objects.filter(creator=user, ended=False)
-        if running_interactions.count() >= 1:
-            for item in running_interactions:
-                item.end()
+    def no_other_interactions(self, profile):
+        return profile.interactions is None
 
 
 class EndInteraction(APIView):
@@ -106,7 +106,7 @@ class AuthSignup(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UserSignupSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.data
             user = self.signup(data['email'], data['username'], data['password'])
@@ -154,11 +154,6 @@ class VerifyAccount(View):
                 return HttpResponse('Thank you for your email confirmation. Now you may login your account.')
         else:
             return HttpResponse('This activation link has expired!')
-
-
-class GetUserInfo(APIView):
-    authentication_classes = ()
-
 
 class AuthGetToken(ObtainAuthToken):
 
