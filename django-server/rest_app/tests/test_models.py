@@ -45,18 +45,36 @@ class ProfileTests(TestCase):
         self.assertEquals(new_prof.risk, 0)
 
     def test_get_interactions(self):
-        self.meet_time = timezone.now()
-        self.interaction = UserInteraction.objects.create(meet_time=self.meet_time)
-        self.interaction.add_participants([self.test_profile, self.test_user2])
-        result = self.test_profile.interactions
-        self.assertEquals(self.interaction, result)
+        interaction = UserInteraction.start(self.test_profile)
+        interaction.add_participants([self.test_profile, self.test_user2])
+
+        query_result = [result for result in self.test_profile.interactions]
+
+        self.assertEquals([interaction], query_result)
 
     def test_get_interactions_none(self):
-        self.meet_time = timezone.now()
-        self.interaction = UserInteraction.objects.create(meet_time=self.meet_time)
-        self.interaction.add_participants([])
+        meet_time = timezone.now()
+        interaction = UserInteraction.objects.create(meet_time=meet_time)
+        interaction.add_participants([])
+
         result = self.test_profile.interactions
         self.assertEquals(None, result)
+
+
+    def test_has_no_running_interactions(self):
+        interaction = UserInteraction.start(self.test_profile)
+        interaction.add_participants([self.test_profile, self.test_user2])
+        interaction.end()
+
+        self.assertIsNotNone(self.test_profile.interactions)
+        self.assertFalse(self.test_profile.has_running_interactions)
+
+    def test_has_running_interactions(self):
+        interaction = UserInteraction.start(self.test_profile)
+        interaction.add_participants([self.test_profile, self.test_user2])
+
+        self.assertIsNotNone(self.test_profile.interactions)
+        self.assertTrue(self.test_profile.has_running_interactions)
 
 
 class TestInteractionTests(TestCase):

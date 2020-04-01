@@ -54,11 +54,15 @@ class Profile(models.Model):
 
     @property
     def interactions(self):
-        try:
-            interaction = UserInteraction.objects.get(participants__in=[self])
+        interaction = UserInteraction.objects.filter(participants__in=[self])
+        if interaction.exists():
             return interaction
-        except UserInteraction.DoesNotExist as e:
-            return None
+        return None
+
+
+    @property
+    def has_running_interactions(self):
+        return UserInteraction.objects.filter(participants__in=[self], end_time=None).count() > 0
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -86,11 +90,15 @@ class UserInteraction(models.Model):
 
         return interaction
 
-    def add_participants(self, users: List[User]):
-        self.participants.add(*users)
+    def add_participants(self, profiles: List[Profile]):
+        self.participants.add(*profiles)
         self.save()
 
     def end(self):
         self.end_time = timezone.now()
         self.ended = True
         self.save()
+
+    @property
+    def has_ended(self):
+        return self.end_time is not None
