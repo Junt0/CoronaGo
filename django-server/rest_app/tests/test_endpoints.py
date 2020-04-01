@@ -137,6 +137,7 @@ class TestUserProfileEndpoints(APITestCase):
         self.assertEquals(response.status_code, 401)
 
     def test_get_profile_with_token(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.user_token.key)
         self.test_user.is_active = True
         self.test_user.save()
 
