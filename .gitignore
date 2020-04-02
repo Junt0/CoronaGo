@@ -3,3 +3,6 @@
 .idea
 CoronaGo/__pycache__/
 /django-server/CoronaGo/local_keys.py
+/vscode/
+*.pyc
+.vscode/settings.json
