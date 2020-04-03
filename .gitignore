@@ -6,3 +6,5 @@ CoronaGo/__pycache__/
 /vscode/
 *.pyc
 .vscode/settings.json
+.vscode/launch.json
+.vscode
