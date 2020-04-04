@@ -5,30 +5,40 @@
 // import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_app/screens/screenslib.dart';
-
 
 void main() {
   runApp(new MyApp());
 }
 
 class MyApp extends StatelessWidget {
-	@override
-	Widget build(BuildContext context) {
-		return MaterialApp(
-			initialRoute: AppLoading.id,
-			routes: {
-				AppLoading.id: (context) => AppLoading(),
-				AuthScreen.id: (context) => AuthScreen(),
-				HomeScreen.id: (context) => HomeScreen(),
-				LoginScreen.id: (context) => LoginScreen(),
-				SignupScreen.id: (context) => SignupScreen(),
-				OverviewScreen.id: (context) => OverviewScreen(),
+  @override
+  Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
-			}
-		);
-	}
-
+    return new MaterialApp(
+        title: "CoronaGo",
+        theme: new ThemeData(
+          primaryColor: Color(0xff2E1E43),
+					backgroundColor: Color(0xFF2D1D40),
+          brightness: Brightness.dark,
+          accentColor: Color(0xffFE4A49),
+          fontFamily: 'Open Sans',
+        ), 
+        initialRoute: AppLoading.id,
+        routes: {
+          AppLoading.id: (context) => AppLoading(),
+          AuthScreen.id: (context) => AuthScreen(),
+          HomeScreen.id: (context) => HomeScreen(),
+          LoginScreen.id: (context) => LoginScreen(),
+          SignupScreen.id: (context) => SignupScreen(),
+          OverviewScreen.id: (context) => OverviewScreen(),
+        });
+  }
 }
 
 // class _MyAppState extends State<MyApp> {
@@ -107,6 +117,6 @@ class MyApp extends StatelessWidget {
 // 		});
 // 		print("Generated code ${this.codeStr}");
 
-// 	} 
+// 	}
 
 // }
