@@ -1,6 +1,7 @@
+import 'package:flutter_app/services/user_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'dart:math';
 class APIHelper {
   static const String domain = "http://127.0.0.1:8000/";
   static Map<String, String> endings = {
@@ -11,12 +12,28 @@ class APIHelper {
     'end_interaction': 'api/interaction/end',
   };
 
-  void signup(String username, password, email) async {
-    http.Response response = await this._signupRequest(username, password, email);
-    if (response.statusCode != 200) {
-      throw Exception(this.getErrorMessage(response));
+  void signup(User user) async {
+    http.Response response = await this._signupRequest(user.username, user.password, user.email);
+    
+    Exception exception = this._getAPIException(response);
+    if (exception != null) {
+      throw exception;
     }
   }
+
+  Exception _getAPIException(http.Response response) {
+    String serverErrorMsg = this.getErrorMessage(response);
+    int statusFirstDig = (response.statusCode / 100).floor();
+
+    if (statusFirstDig == 4) {
+      return APIAuthError(serverErrorMsg);
+    } else if (statusFirstDig == 5) {
+      return APIServerError(serverErrorMsg);
+    } else {
+      return null;
+    }
+  }
+
 
   Future<http.Response> _signupRequest(String username, password, email) async {
     Map<String, String> requestBody = {
@@ -37,12 +54,41 @@ class APIHelper {
     String error = "";
     if (decoded.hasKey("error")) {
       error = decoded['error'];
-    } else {
-      error = "An unknown error has occurred";
     }
 
     return error;
   }
 
 
+}
+
+
+class APIInvalidRequest implements Exception {
+  String message;
+
+  APIInvalidRequest([this.message]);
+
+  String errorMessage() {
+    return 'An invalid request was sent by the app: $message';
+  }
+}
+
+class APIAuthError implements Exception {
+  String message;
+
+  APIAuthError([this.message]);
+
+  String errorMessage() {
+    return 'Authentication error with the API: $message';
+  }
+}
+
+class APIServerError implements Exception {
+  String message;
+
+  APIServerError([this.message]);
+
+  String errorMessage() {
+    return 'An unknown error has occured with the server: $message';
+  }
 }
