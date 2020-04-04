@@ -11,8 +11,6 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
-	await Hive.initFlutter();
-  await Hive.openBox('api_key');
   runApp(new MyApp());
 }
 
@@ -33,7 +31,7 @@ class MyApp extends StatelessWidget {
           accentColor: Color(0xffFE4A49),
           fontFamily: 'Open Sans',
         ), 
-        initialRoute: AppLoading.id,
+        initialRoute: SignupScreen.id,
         routes: {
           AppLoading.id: (context) => AppLoading(),
           AuthScreen.id: (context) => AuthScreen(),

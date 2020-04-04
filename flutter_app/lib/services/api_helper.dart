@@ -12,13 +12,13 @@ class APIHelper {
   };
 
   void signup(String username, password, email) async {
-    http.Response response = await this._signup_request(username, password, email);
+    http.Response response = await this._signupRequest(username, password, email);
     if (response.statusCode != 200) {
       throw Exception(this.getErrorMessage(response));
     }
   }
 
-  Future<http.Response> _signup_request(String username, password, email) async {
+  Future<http.Response> _signupRequest(String username, password, email) async {
     Map<String, String> requestBody = {
       'username': username,
       'password': password,
