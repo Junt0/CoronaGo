@@ -7,6 +7,7 @@ class SignupScreen extends StatefulWidget {
   _SignupScreen createState() => _SignupScreen();
 }
 
+// TODO pick a less confusing color scheme
 class _SignupScreen extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _pass = TextEditingController();
@@ -14,7 +15,7 @@ class _SignupScreen extends State<SignupScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   User user = new User();
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     final FormState form = _formKey.currentState;
 
     if (!form.validate()) {
@@ -22,13 +23,23 @@ class _SignupScreen extends State<SignupScreen> {
     } else {
       form.save();
       print('Saving the form...');
+
+      APIHelper api = new APIHelper();
+      bool successful = await api.signup(user);
+
+      if (successful) {
+        this.showMessage('Signed up successfully!', color: Colors.green[400]);
+      } else {
+        this.showMessage('An error has occured, please try again',
+            color: Theme.of(context).accentColor);
+      }
     }
   }
 
-  void showMessage(String message) {
+  void showMessage(String message, {Color color = Colors.red}) {
     _scaffoldKey.currentState.showSnackBar(
       new SnackBar(
-        backgroundColor: Theme.of(context).accentColor,
+        backgroundColor: color,
         content: new Text(message),
       ),
     );
@@ -43,7 +54,6 @@ class _SignupScreen extends State<SignupScreen> {
     } else {
       return "An invalid email was entered";
     }
-    
   }
 
   String _validateUsername(String username) {
@@ -52,8 +62,7 @@ class _SignupScreen extends State<SignupScreen> {
   }
 
   String _validatePassword(String password) {
-    if (password.length < 5)
-      return "Password must be longer than 5 characters";
+    if (password.length < 5) return "Password must be longer than 5 characters";
     return null;
   }
 
@@ -65,7 +74,7 @@ class _SignupScreen extends State<SignupScreen> {
     }
 
     if (pass1Valid == null && this._pass.text == confirmPassword) {
-        return null;
+      return null;
     } else {
       return "Passwords do not match";
     }
@@ -131,5 +140,4 @@ class _SignupScreen extends State<SignupScreen> {
       ),
     );
   }
-
 }
