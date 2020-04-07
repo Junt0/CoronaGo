@@ -12,11 +12,11 @@ class APIHelper {
     'create_interaction': 'api/interaction/create',
     'end_interaction': 'api/interaction/end',
   };
+  User user;
 
-  Future<bool> signup(User user) async {
-    http.Response response =
-        await this._signupRequest(user.username, user.password, user.email);
+  APIHelper(this.user);
 
+  bool requestSuccessful(http.Response response) {
     try {
       this._throwProperAPIException(response);
       return true;
@@ -28,33 +28,26 @@ class APIHelper {
 
   // Depending on the status code it will throw an exception with the proper error message
   void _throwProperAPIException(http.Response response) {
+    // If there is no response from the server
     if (response == null) {
       throw APIConnectionError();
     }
 
     String serverErrorMsg = this.getErrorMessage(response);
-    int statusFirstDig = (response.statusCode / 100).floor();
+    int statusNearestHundreth = (response.statusCode / 100).floor() * 100;
 
-    if (statusFirstDig == 4) {
-      throw APIAuthError(serverErrorMsg);
-    } else if (statusFirstDig == 5) {
-      throw APIServerError(serverErrorMsg);
-    }
-  }
-
-  Future<http.Response> _signupRequest(String username, password, email) async {
-    Map<String, String> requestBody = {
-      'username': username,
-      'password': password,
-      'email': email,
+    // TODO make exception for 300 code
+    Map<int, Object> httpErrorCode = {
+      500: APIServerError(serverErrorMsg),
+      400: APIAuthError(serverErrorMsg),
+      300: null,
+      200: null,
+      null: null,
     };
 
-    try {
-      http.Response response =
-          await http.post(this.getURL("signup"), body: requestBody);
-      return response;
-    } catch (e) {
-      return null;
+    Exception error = httpErrorCode[statusNearestHundreth];
+    if (error != null) {
+      throw error;
     }
   }
 
@@ -63,14 +56,66 @@ class APIHelper {
   }
 
   String getErrorMessage(http.Response response) {
-    dynamic decoded = jsonDecode(response.body);
-    String error = "";
-    if (decoded.containsKey("error")) {
-      error = decoded['error'];
-    }
-
-    return error;
+    return this.getResponseAttribute(response, "error");
   }
+
+  String getResponseAttribute(http.Response response, String attribute) {
+    dynamic decoded = jsonDecode(response.body);
+    bool hasAttribute = decoded.containsKey(attribute);
+    return hasAttribute ? decoded[attribute] : null;
+  }
+}
+
+class APIAuth {
+  User user;
+  APIHelper helper;
+  bool authenticated = false;
+
+  APIAuth(User user) {
+    this.user = user;
+    this.helper = new APIHelper(this.user);
+  }
+
+  Future<bool> signup(User user) async {
+    http.Response response =
+        await this._signupRequest(user.username, user.password, user.email);
+  }
+
+  Future<http.Response> _signupRequest(String username, password, email) async {
+    Map requestBody =
+        this.user.serializeFields(['username', 'password', 'email']);
+
+    try {
+      http.Response response =
+          await http.post(helper.getURL("signup"), body: requestBody);
+      return response;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Future<bool> login(User user) async {
+  //   bool hasKey = await user.hasAPIKey();
+  //   if (!hasKey) {
+  //     http.Response response = await this._sendTokenRequest();
+  //     if (this.helper.requestSuccessful(response)) {
+  //       user.storeAPIKey(key)
+  //     }
+  //   }
+  // }
+
+  // Future<http.Response> _sendTokenRequest() async {
+  //   Map requestBody = this.user.serializeFields(['username', 'password']);
+
+  //   try {
+  //     http.Response response =
+  //         await http.post(helper.getURL("get_token"), body: requestBody);
+  //     return response;
+  //   } catch (e) {
+  //     return null;
+  //   }
+  // }
+
 }
 
 class APIConnectionError implements Exception {
