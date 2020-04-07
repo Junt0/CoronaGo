@@ -67,6 +67,6 @@ class User{
 
   bool hasAPIKey()  {
     this.loadAPIKey();
-    return this.API_KEY == null;
+    return this.API_KEY != null;
   }
 }

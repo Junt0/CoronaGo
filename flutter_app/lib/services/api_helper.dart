@@ -6,11 +6,11 @@ import 'dart:convert';
 class APIHelper {
   static const String domain = "http://192.168.0.19:8000/";
   static Map<String, String> endings = {
-    'signup': 'api/auth/signup',
-    'get_token': 'api/auth',
-    'join_interaction': 'api/interaction/join',
-    'create_interaction': 'api/interaction/create',
-    'end_interaction': 'api/interaction/end',
+    'signup': 'api/auth/signup/',
+    'get_token': 'api/auth/',
+    'join_interaction': 'api/interaction/join/',
+    'create_interaction': 'api/interaction/create/',
+    'end_interaction': 'api/interaction/end/',
   };
   User user;
 
@@ -52,7 +52,7 @@ class APIHelper {
   }
 
   String getURL(String ending) {
-    return "$domain${endings[ending]}/";
+    return "$domain${endings[ending]}";
   }
 
   String getErrorMessage(http.Response response) {
@@ -96,15 +96,19 @@ class APIAuth {
   }
 
   Future<bool> login(User user) async {
-    bool hasKey = await user.hasAPIKey();
+    bool hasKey = user.hasAPIKey();
     if (!hasKey) {
       http.Response response = await this._sendTokenRequest();
       if (this.helper.requestSuccessful(response)) {
         String key = this.helper.getResponseAttribute(response, "token");
         user.storeAPIKey(key);
         print(user.API_KEY);
+        
+        return true;
       }
     }
+
+    return false;
   }
 
   Future<http.Response> _sendTokenRequest() async {
