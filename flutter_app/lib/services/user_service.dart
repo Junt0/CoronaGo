@@ -48,6 +48,10 @@ class User{
   //   this.API_KEY = key;
   // }
 
+  void storeAPIKey(String key) async {
+    this.API_KEY = key;
+  }
+
   // Future<String> loadAPIKey() async {
   //   var box = await Hive.openBox('KEYS');
   //   String key = await box.get('API_KEY');
@@ -56,9 +60,13 @@ class User{
   //   this.API_KEY = key;
   //   return key;
   // }
+  String loadAPIKey() {
+    this.API_KEY = null;
+    return this.API_KEY;
+  }
 
-  // Future<bool> hasAPIKey() async {
-  //   await this.loadAPIKey();
-  //   return this.API_KEY == null;
-  // }
+  bool hasAPIKey()  {
+    this.loadAPIKey();
+    return this.API_KEY == null;
+  }
 }

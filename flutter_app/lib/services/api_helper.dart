@@ -79,6 +79,7 @@ class APIAuth {
   Future<bool> signup(User user) async {
     http.Response response =
         await this._signupRequest(user.username, user.password, user.email);
+    return this.helper.requestSuccessful(response);
   }
 
   Future<http.Response> _signupRequest(String username, password, email) async {
@@ -94,27 +95,29 @@ class APIAuth {
     }
   }
 
-  // Future<bool> login(User user) async {
-  //   bool hasKey = await user.hasAPIKey();
-  //   if (!hasKey) {
-  //     http.Response response = await this._sendTokenRequest();
-  //     if (this.helper.requestSuccessful(response)) {
-  //       user.storeAPIKey(key)
-  //     }
-  //   }
-  // }
+  Future<bool> login(User user) async {
+    bool hasKey = await user.hasAPIKey();
+    if (!hasKey) {
+      http.Response response = await this._sendTokenRequest();
+      if (this.helper.requestSuccessful(response)) {
+        String key = this.helper.getResponseAttribute(response, "token");
+        user.storeAPIKey(key);
+        print(user.API_KEY);
+      }
+    }
+  }
 
-  // Future<http.Response> _sendTokenRequest() async {
-  //   Map requestBody = this.user.serializeFields(['username', 'password']);
+  Future<http.Response> _sendTokenRequest() async {
+    Map requestBody = this.user.serializeFields(['username', 'password']);
 
-  //   try {
-  //     http.Response response =
-  //         await http.post(helper.getURL("get_token"), body: requestBody);
-  //     return response;
-  //   } catch (e) {
-  //     return null;
-  //   }
-  // }
+    try {
+      http.Response response =
+          await http.post(helper.getURL("get_token"), body: requestBody);
+      return response;
+    } catch (e) {
+      return null;
+    }
+  }
 
 }
 
