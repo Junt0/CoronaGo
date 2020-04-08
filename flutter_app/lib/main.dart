@@ -12,7 +12,7 @@ import 'package:flutter/services.dart';
 
 void main() async {
   await Hive.initFlutter();
-  await Hive.openBox('KEYS');
+  await Hive.openBox('USER');
   runApp(new MyApp());
 }
 

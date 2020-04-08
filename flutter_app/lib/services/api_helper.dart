@@ -5,7 +5,7 @@ import 'dart:convert';
 // TODO comment api helper
 class APIHelper {
   static const String domain = "http://192.168.0.19:8000/";
-  static Map<String, String> endings = {
+  static Map<String, String> urlSuffixes = {
     'signup': 'api/auth/signup/',
     'get_token': 'api/auth/',
     'join_interaction': 'api/interaction/join/',
@@ -52,7 +52,7 @@ class APIHelper {
   }
 
   String getURL(String ending) {
-    return "$domain${endings[ending]}";
+    return "$domain${urlSuffixes[ending]}";
   }
 
   String getErrorMessage(http.Response response) {
@@ -85,7 +85,7 @@ class APIAuth {
 
   Future<http.Response> _signupRequest(String username, password, email) async {
     Map requestBody =
-        this.user.serializeFields(['username', 'password', 'email']);
+        this.user.attributesToMap(['username', 'password', 'email']);
 
     try {
       http.Response response =
@@ -109,7 +109,6 @@ class APIAuth {
 
         loggedIn = true;
       }
-
     } else {
       print("Already logged in");
       loggedIn = true;
@@ -120,7 +119,7 @@ class APIAuth {
   }
 
   Future<http.Response> _sendTokenRequest() async {
-    Map requestBody = this.user.serializeFields(['username', 'password']);
+    Map requestBody = this.user.attributesToMap(['username', 'password']);
 
     try {
       http.Response response =
