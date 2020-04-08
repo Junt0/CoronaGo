@@ -22,13 +22,14 @@ class _SignupScreen extends State<SignupScreen> {
       showMessage('The form is invalid! Please review and correct');
     } else {
       form.save();
-      print('Saving the form...');
 
       APIAuth api = new APIAuth(user);
       bool successful = await api.signup(user);
 
       if (successful) {
         this.showMessage('Signed up successfully!', color: Colors.green[400]);
+        await Future.delayed(Duration(milliseconds: 1500));
+        Navigator.popAndPushNamed(context, LoginScreen.id);
       } else {
         this.showMessage('An error has occured, please try again',
             color: Theme.of(context).accentColor);

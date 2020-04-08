@@ -27,6 +27,8 @@ class _LoginScreen extends State<LoginScreen> {
 
       if (successful) {
         this.showMessage('Logged in successfully!', color: Colors.green[400]);
+        await Future.delayed(Duration(milliseconds: 1500));
+        Navigator.popAndPushNamed(context, OverviewScreen.id);
       } else {
         this.showMessage('An error has occured, please try again',
             color: Theme.of(context).accentColor);
