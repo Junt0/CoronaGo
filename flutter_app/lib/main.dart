@@ -6,6 +6,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_app/screens/screenslib.dart';
+import 'package:flutter_app/services/api_helper.dart';
+import 'package:flutter_app/services/user_service.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
@@ -13,10 +15,26 @@ import 'package:flutter/services.dart';
 void main() async {
   await Hive.initFlutter();
   await Hive.openBox('USER');
-  runApp(new MyApp());
+  String initial = await attemptLogin();
+  runApp(new MyApp(initial));
+}
+
+Future<String> attemptLogin() async {
+  User user = User.loadFromHive();
+  APIAuth auth = new APIAuth(user);
+  bool success = await auth.login(user);
+
+  if (success) {
+    return OverviewScreen.id;
+  } else {
+    return LoginScreen.id;
+  }
 }
 
 class MyApp extends StatelessWidget {
+  String initalRoute = "SplashScreen.id";
+  MyApp(this.initalRoute);
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
@@ -28,14 +46,14 @@ class MyApp extends StatelessWidget {
         title: "CoronaGo",
         theme: new ThemeData(
           primaryColor: Color(0xff2E1E43),
-					backgroundColor: Color(0xFF2D1D40),
+          backgroundColor: Color(0xFF2D1D40),
           brightness: Brightness.dark,
           accentColor: Color(0xffFE4A49),
           fontFamily: 'Open Sans',
-        ), 
-        initialRoute: LoginScreen.id,
+        ),
+        initialRoute: this.initalRoute,
         routes: {
-          AppLoading.id: (context) => AppLoading(),
+          SplashScreen.id: (context) => SplashScreen(),
           AuthScreen.id: (context) => AuthScreen(),
           HomeScreen.id: (context) => HomeScreen(),
           LoginScreen.id: (context) => LoginScreen(),

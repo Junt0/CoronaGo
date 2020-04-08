@@ -73,6 +73,17 @@ class User {
     return blankUser;
   }
 
+  bool isNull(List<String> attributes) {
+    Map fields = this._classAttributes();
+
+    for (var attr in attributes) {
+      if (fields[attr] == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void saveToHive({field = "all"}) {
     Box userBox = Hive.box('USER');
     Map fields = this._classAttributes();

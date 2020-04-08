@@ -102,13 +102,16 @@ class APIAuth {
 
     if (!hasKey) {
       print("Sending login request");
-      http.Response response = await this._sendTokenRequest();
-      if (this.helper.requestSuccessful(response)) {
-        String key = this.helper.getResponseAttribute(response, "token");
-        user.storeAPIKey(key);
+      if (!this.user.isNull(['username', 'password'])) {
+        http.Response response = await this._sendTokenRequest();
+        if (this.helper.requestSuccessful(response)) {
+          String key = this.helper.getResponseAttribute(response, "token");
+          user.storeAPIKey(key);
 
-        loggedIn = true;
+          loggedIn = true;
+        }
       }
+
     } else {
       print("Already logged in");
       loggedIn = true;

@@ -2,7 +2,7 @@ part of screens;
 
 
 class OverviewScreen extends StatefulWidget {
-  static const String id = 'app_overview';
+  static const String id = 'home';
 
   @override
   _OverviewScreen createState() => _OverviewScreen();
@@ -12,6 +12,8 @@ class OverviewScreen extends StatefulWidget {
 class _OverviewScreen extends State<OverviewScreen> {
   @override
   Widget build(BuildContext context) {
-    return Material();
+    return Material(
+      child: SafeArea(child: Text("This is the overview screen"),)
+    );
   }
 }
