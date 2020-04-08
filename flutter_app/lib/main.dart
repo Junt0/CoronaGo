@@ -27,7 +27,7 @@ Future<String> attemptLogin() async {
   if (success) {
     return OverviewScreen.id;
   } else {
-    return LoginScreen.id;
+    return AuthScreen.id;
   }
 }
 
