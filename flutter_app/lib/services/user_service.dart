@@ -40,33 +40,31 @@ class User{
     this.password = password;
   }
 
-  // void storeAPIKey(String key) async {
-  //   var box = await Hive.openBox('KEYS');
-  //   await box.put('API_KEY', key);
-  //   await box.close();
-
-  //   this.API_KEY = key;
-  // }
+  void clearKey() async {
+    var box = Hive.box('KEYS');
+    box.clear();
+    this.API_KEY = null;
+  }
 
   void storeAPIKey(String key) async {
+    var box = Hive.box('KEYS');
+    await box.put('API_KEY', key);
+
     this.API_KEY = key;
   }
 
-  // Future<String> loadAPIKey() async {
-  //   var box = await Hive.openBox('KEYS');
-  //   String key = await box.get('API_KEY');
-  //   await box.close();
+  Future<String> loadAPIKey() async {
+    var box = Hive.box('KEYS');
+    String key = box.get('API_KEY');
 
-  //   this.API_KEY = key;
-  //   return key;
-  // }
-  String loadAPIKey() {
-    this.API_KEY = null;
-    return this.API_KEY;
+    this.API_KEY = key;
+    return key;
   }
 
-  bool hasAPIKey()  {
-    this.loadAPIKey();
+  Future<bool> hasAPIKey() async {
+    await this.loadAPIKey();
     return this.API_KEY != null;
   }
+
+  
 }

@@ -74,6 +74,7 @@ class APIAuth {
   APIAuth(User user) {
     this.user = user;
     this.helper = new APIHelper(this.user);
+    this.user.loadAPIKey();
   }
 
   Future<bool> signup(User user) async {
@@ -96,18 +97,26 @@ class APIAuth {
   }
 
   Future<bool> login(User user) async {
-    bool hasKey = user.hasAPIKey();
+    bool hasKey = await user.hasAPIKey();
+    bool loggedIn = false;
+
     if (!hasKey) {
+      print("Sending login request");
       http.Response response = await this._sendTokenRequest();
       if (this.helper.requestSuccessful(response)) {
         String key = this.helper.getResponseAttribute(response, "token");
         user.storeAPIKey(key);
-        
-        return true;
+
+        loggedIn = true;
       }
+
+    } else {
+      print("Already logged in");
+      loggedIn = true;
     }
 
-    return false;
+    this.authenticated = loggedIn;
+    return this.authenticated;
   }
 
   Future<http.Response> _sendTokenRequest() async {
@@ -121,7 +130,6 @@ class APIAuth {
       return null;
     }
   }
-
 }
 
 class APIConnectionError implements Exception {

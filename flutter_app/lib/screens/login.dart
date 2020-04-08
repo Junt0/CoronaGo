@@ -22,8 +22,6 @@ class _LoginScreen extends State<LoginScreen> {
       showMessage('The form is invalid! Please review and correct');
     } else {
       form.save();
-      print('Saving the form...');
-
       APIAuth auth = new APIAuth(user);
       bool successful = await auth.login(user);
 
@@ -34,13 +32,11 @@ class _LoginScreen extends State<LoginScreen> {
             color: Theme.of(context).accentColor);
       }
 
-      // var box = await Hive.openBox('KEYS');
-      // String key = await box.get('API_KEY');
-      // print("The saved key was: $key");
     }
   }
 
   void showMessage(String message, {Color color = Colors.red}) {
+    print(message);
     _scaffoldKey.currentState.showSnackBar(
       new SnackBar(
         backgroundColor: color,

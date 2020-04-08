@@ -11,8 +11,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 
 void main() async {
-  //await Hive.initFlutter();
-  //Hive.openBox("KEYS");
+  await Hive.initFlutter();
+  await Hive.openBox('KEYS');
   runApp(new MyApp());
 }
 
