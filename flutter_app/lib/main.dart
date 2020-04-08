@@ -20,7 +20,7 @@ void main() async {
 }
 
 Future<String> attemptLogin() async {
-  User user = User.loadFromHive();
+  AuthUser user = AuthUser.loadFromHive();
   APIAuth auth = new APIAuth(user);
   bool success = await auth.login(user);
 

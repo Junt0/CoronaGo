@@ -13,7 +13,7 @@ class _LoginScreen extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _pass = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  User user = new User();
+  AuthUser user = new AuthUser();
 
   Future<void> _submitForm() async {
     final FormState form = _formKey.currentState;

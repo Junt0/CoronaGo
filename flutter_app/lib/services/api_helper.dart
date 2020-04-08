@@ -12,7 +12,7 @@ class APIHelper {
     'create_interaction': 'api/interaction/create/',
     'end_interaction': 'api/interaction/end/',
   };
-  User user;
+  AuthUser user;
 
   APIHelper(this.user);
 
@@ -67,17 +67,17 @@ class APIHelper {
 }
 
 class APIAuth {
-  User user;
+  AuthUser user;
   APIHelper helper;
   bool authenticated = false;
 
-  APIAuth(User user) {
+  APIAuth(AuthUser user) {
     this.user = user;
     this.helper = new APIHelper(this.user);
     this.user.loadAPIKey();
   }
 
-  Future<bool> signup(User user) async {
+  Future<bool> signup(AuthUser user) async {
     http.Response response =
         await this._signupRequest(user.username, user.password, user.email);
     return this.helper.requestSuccessful(response);
@@ -96,7 +96,7 @@ class APIAuth {
     }
   }
 
-  Future<bool> login(User user) async {
+  Future<bool> login(AuthUser user) async {
     bool hasKey = await user.hasAPIKey();
     bool loggedIn = false;
 
@@ -111,7 +111,6 @@ class APIAuth {
           loggedIn = true;
         }
       }
-
     } else {
       print("Already logged in");
       loggedIn = true;
@@ -135,7 +134,7 @@ class APIAuth {
 
   void logout() {
     user.clearHive();
-    user = new User();
+    user = new AuthUser();
   }
 }
 

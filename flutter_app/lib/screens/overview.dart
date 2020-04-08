@@ -10,7 +10,7 @@ class OverviewScreen extends StatefulWidget {
 class _OverviewScreen extends State<OverviewScreen> {
 
   void logoutUser() {
-    User user = User.loadFromHive();
+    AuthUser user = AuthUser.loadFromHive();
     APIAuth auth = new APIAuth(user);
     auth.logout();
     Navigator.pushReplacementNamed(context, AuthScreen.id);

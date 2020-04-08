@@ -13,7 +13,7 @@ class _SignupScreen extends State<SignupScreen> {
   final TextEditingController _pass = TextEditingController();
   final TextEditingController _confirmPass = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  User user = new User();
+  AuthUser user = new AuthUser();
 
   Future<void> _submitForm() async {
     final FormState form = _formKey.currentState;
