@@ -8,10 +8,96 @@ class LoginScreen extends StatefulWidget {
   _LoginScreen createState() => _LoginScreen();
 }
 
-
+// TODO pick a less confusing color scheme
 class _LoginScreen extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _pass = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  User user = new User();
+
+  Future<void> _submitForm() async {
+    final FormState form = _formKey.currentState;
+
+    if (!form.validate()) {
+      showMessage('The form is invalid! Please review and correct');
+    } else {
+      form.save();
+      print('Saving the form...');
+
+      APIAuth auth = new APIAuth(user);
+      bool successful = await auth.login(user);
+
+      if (successful) {
+        this.showMessage('Logged in successfully!', color: Colors.green[400]);
+      } else {
+        this.showMessage('An error has occured, please try again',
+            color: Theme.of(context).accentColor);
+      }
+
+      // var box = await Hive.openBox('KEYS');
+      // String key = await box.get('API_KEY');
+      // print("The saved key was: $key");
+    }
+  }
+
+  void showMessage(String message, {Color color = Colors.red}) {
+    _scaffoldKey.currentState.showSnackBar(
+      new SnackBar(
+        backgroundColor: color,
+        content: new Text(message),
+      ),
+    );
+  }
+
+  String _validateUsername(String username) {
+    if (username.isEmpty) return 'Empty';
+    return null;
+  }
+
+  String _validatePassword(String password) {
+    if (password.length < 5) return "Password must be longer than 5 characters";
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Material();
+    return Scaffold(
+      key: this._scaffoldKey,
+      body: SafeArea(
+        child: new Form(
+          key: _formKey,
+          autovalidate: true,
+          child: new ListView(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            children: <Widget>[
+              new TextFormField(
+                validator: this._validateUsername,
+                onSaved: (username) => user.setUsername(username),
+                decoration: InputDecoration(
+                  hintText: 'Enter your username',
+                  labelText: 'Username',
+                ),
+              ),
+              new TextFormField(
+                controller: this._pass,
+                onSaved: (password) => user.setPassword(password),
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Enter your password',
+                  labelText: 'Password',
+                ),
+              ),
+              new Container(
+                padding: EdgeInsets.only(top: 20),
+                child: new RaisedButton(
+                  child: Text("Submit"),
+                  onPressed: this._submitForm,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -5,12 +5,14 @@
 // import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_app/screens/screenslib.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
+  //await Hive.initFlutter();
+  //Hive.openBox("KEYS");
   runApp(new MyApp());
 }
 
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
           accentColor: Color(0xffFE4A49),
           fontFamily: 'Open Sans',
         ), 
-        initialRoute: SignupScreen.id,
+        initialRoute: LoginScreen.id,
         routes: {
           AppLoading.id: (context) => AppLoading(),
           AuthScreen.id: (context) => AuthScreen(),

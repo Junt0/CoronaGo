@@ -24,7 +24,7 @@ class _SignupScreen extends State<SignupScreen> {
       form.save();
       print('Saving the form...');
 
-      APIHelper api = new APIHelper();
+      APIAuth api = new APIAuth(user);
       bool successful = await api.signup(user);
 
       if (successful) {

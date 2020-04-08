@@ -102,7 +102,6 @@ class APIAuth {
       if (this.helper.requestSuccessful(response)) {
         String key = this.helper.getResponseAttribute(response, "token");
         user.storeAPIKey(key);
-        print(user.API_KEY);
         
         return true;
       }
