@@ -1,6 +1,5 @@
 part of screens;
 
-
 class OverviewScreen extends StatefulWidget {
   static const String id = 'home';
 
@@ -8,12 +7,27 @@ class OverviewScreen extends StatefulWidget {
   _OverviewScreen createState() => _OverviewScreen();
 }
 
-
 class _OverviewScreen extends State<OverviewScreen> {
+
+  void logoutUser() {
+    User user = User.loadFromHive();
+    APIAuth auth = new APIAuth(user);
+    auth.logout();
+    Navigator.pushReplacementNamed(context, AuthScreen.id);
+  }
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: SafeArea(child: Text("This is the overview screen"),)
-    );
+        child: SafeArea(
+      child: Column(
+        children: <Widget>[
+          Text("This is the overview screen"),
+          RaisedButton(
+            onPressed: () => this.logoutUser(),
+            child: Text("Logout")
+          ),
+        ],
+      ),
+    ));
   }
 }

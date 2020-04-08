@@ -132,6 +132,11 @@ class APIAuth {
       return null;
     }
   }
+
+  void logout() {
+    user.clearHive();
+    user = new User();
+  }
 }
 
 class APIConnectionError implements Exception {
