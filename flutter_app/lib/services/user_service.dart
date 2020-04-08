@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 
-class User {
+
+class AuthUser{
   String username;
   String email;
   String password;
@@ -61,9 +62,9 @@ class User {
     return this.API_KEY != null;
   }
 
-  static User loadFromHive() {
+  static AuthUser loadFromHive() {
     Box userBox = Hive.box('USER');
-    User blankUser = new User();
+    AuthUser blankUser = new AuthUser();
 
     blankUser.username = userBox.get("username");
     blankUser.email = userBox.get("email");
@@ -100,5 +101,30 @@ class User {
   void clearHive() async {
     var box = Hive.box('USER');
     box.clear();
+  }
+}
+
+
+class Profile {
+  double risk;
+  String email = "";
+  String username;
+
+  Profile(this.risk, this.email, this.username);
+
+  static Profile fromResponse(Map attributes) {
+
+  }
+
+  double getRisk() {
+    return risk;
+  }
+
+  String getEmail() {
+    return email;
+  }
+
+  String getUsername() {
+
   }
 }
