@@ -28,7 +28,8 @@ class _LoginScreen extends State<LoginScreen> {
       if (successful) {
         this.showMessage('Logged in successfully!', color: Colors.green[400]);
         await Future.delayed(Duration(milliseconds: 1500));
-        Navigator.popAndPushNamed(context, OverviewScreen.id);
+        // Removes all previous routes and adds new route to prevent going back to the original auth screen
+        Navigator.of(context).pushNamedAndRemoveUntil(OverviewScreen.id, (Route<dynamic> route) => false);
       } else {
         this.showMessage('An error has occured, please try again',
             color: Theme.of(context).accentColor);

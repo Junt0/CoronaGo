@@ -15,12 +15,12 @@ class _AuthScreen extends State<AuthScreen> {
         child: Column(
           children: <Widget>[
             RaisedButton(
-              child: Text("Signup"),
-              onPressed: () => Navigator.popAndPushNamed(context, SignupScreen.id),
+              child: Text("Sign up"),
+              onPressed: () => Navigator.pushNamed(context, SignupScreen.id),
             ),
             RaisedButton(
               child: Text("Login"),
-              onPressed: () => Navigator.popAndPushNamed(context, LoginScreen.id),
+              onPressed: () => Navigator.pushNamed(context, LoginScreen.id),
             ),
           ],
         ),
