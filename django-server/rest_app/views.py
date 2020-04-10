@@ -38,24 +38,15 @@ class GetInteraction(generics.RetrieveAPIView):
         return UserInteraction.objects.get(unique_id=code)
 
 
-
-"""    # TODO return none if the code has no interaction associated with it
-    def get(self, request, code):
-        profile = Profile.objects.get(user=request.user)
-        interactions = profile.interactions
-        if interactions is None:
-            Response()
-        return Response(UserInteractionSerializer(profile.interactions, many=True).data)"""
-
-
-class RequestUserProf(APIView):
+class RequestUserProf(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
+    serializer_class = ProfileSerializer
+    model = Profile
 
     # TODO return none if user does not exist
-    def get(self, request, pk):
-        user_obj = User.objects.get(id=pk)
-        profile = Profile.objects.get(user=user_obj)
-        return Response(ProfileSerializer(profile).data)
+    def get_object(self):
+        user = self.request.user
+        return Profile.objects.get(user=user)
 
 
 class CreateInteraction(APIView):
@@ -72,7 +63,7 @@ class CreateInteraction(APIView):
         else:
             return Response({
                 'error': 'You are only able to have one interaction running at a time'
-            })
+            }, status=403)
 
 
 class JoinInteraction(APIView):
