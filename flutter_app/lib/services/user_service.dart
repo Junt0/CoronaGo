@@ -1,5 +1,6 @@
+import 'package:flutter_app/services/api_helper.dart';
 import 'package:hive/hive.dart';
-
+import 'package:http/http.dart' as http;
 
 class AuthUser{
   String username;
@@ -112,8 +113,22 @@ class Profile {
 
   Profile(this.risk, this.email, this.username);
 
-  static Profile fromResponse(Map attributes) {
+  static Profile fromMap(Map profile) {
+    double risk = double.parse(profile['risk']);
+    String email = profile['user']['email'];
+    String username = profile['user']['username'];
 
+    return new Profile(risk, email, username);
+  }
+
+  Map _classAttributes() {
+    var fields = {
+      'username': username,
+      'email': email,
+      'risk': risk,
+    };
+
+    return fields;
   }
 
   double getRisk() {
@@ -125,6 +140,6 @@ class Profile {
   }
 
   String getUsername() {
-
+    return username;
   }
 }

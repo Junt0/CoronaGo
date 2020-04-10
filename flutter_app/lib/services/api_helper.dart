@@ -12,10 +12,6 @@ class APIHelper {
     'create_interaction': 'api/interaction/create/',
     'end_interaction': 'api/interaction/end/',
   };
-  AuthUser user;
-
-  APIHelper(this.user);
-
   bool requestSuccessful(http.Response response) {
     try {
       this._throwProperAPIException(response);
@@ -59,8 +55,12 @@ class APIHelper {
     return this.getResponseAttribute(response, "error");
   }
 
+  Map responseToMap(http.Response response) {
+    return jsonDecode(response.body);
+  }
+
   String getResponseAttribute(http.Response response, String attribute) {
-    dynamic decoded = jsonDecode(response.body);
+    Map decoded = this.responseToMap(response);
     bool hasAttribute = decoded.containsKey(attribute);
     return hasAttribute ? decoded[attribute] : null;
   }
@@ -73,7 +73,7 @@ class APIAuth {
 
   APIAuth(AuthUser user) {
     this.user = user;
-    this.helper = new APIHelper(this.user);
+    this.helper = new APIHelper();
     this.user.loadAPIKey();
   }
 
