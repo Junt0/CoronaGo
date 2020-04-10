@@ -28,6 +28,16 @@ def home(request):
     return render(request, 'home.html')
 
 
+class GetProfileInteractions(generics.ListAPIView):
+    serializer_class = UserInteractionSerializer
+    model = UserInteraction
+
+    def get_queryset(self):
+        user = self.request.user
+        profile = Profile.objects.get(user=user)
+        return profile.interactions
+
+
 class GetInteraction(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
     serializer_class = UserInteractionSerializer

@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIRequestFactory, APIClient, APITestCase, RequestsClient
 
 from rest_app.models import Profile, UserInteraction
+from rest_app.serializers import UserInteractionSerializer
 
 """def get_csrf_token(self):
 client = RequestsClient()
@@ -276,7 +277,7 @@ class TestInteractionEndpoints(APITestCase):
         interaction = UserInteraction.objects.get(creator=prof)
         self.assertFalse(interaction.has_ended)
 
-    def test_get_profiles_interactions(self):
+    def test_get_interaction(self):
         interaction = self.setup_interaction_test()
         key = Token.objects.get(user=self.test_user2)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {key}')
@@ -286,4 +287,16 @@ class TestInteractionEndpoints(APITestCase):
         parsed = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
         self.assertEquals(len(parsed.keys()), 5)
+        self.assertEquals(parsed, UserInteractionSerializer(interaction).data)
 
+    def test_get_profiles_interactions(self):
+        interaction = self.setup_interaction_test()
+        key = Token.objects.get(user=self.test_user2)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {key}')
+
+        url = reverse('profile_interactions')
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(len(parsed), 1)
+        self.assertEquals(parsed, UserInteractionSerializer(self.test_profile2.interactions, many=True).data)
