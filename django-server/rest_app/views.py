@@ -11,6 +11,7 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,7 +19,7 @@ from rest_framework.views import APIView
 from rest_app.custom_permissions import IsVerified
 from rest_app.models import Profile, UserInteraction
 from rest_app.tokens import account_activation_token
-from .serializers import UserSerializer, ProfileSerializer, UserSignupSerializer
+from rest_app.serializers import UserSerializer, ProfileSerializer, UserSignupSerializer, UserInteractionSerializer
 from rest_framework import generics, mixins
 from django.middleware.csrf import get_token
 
@@ -27,9 +28,30 @@ def home(request):
     return render(request, 'home.html')
 
 
+class GetInteraction(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
+    serializer_class = UserInteractionSerializer
+    model = UserInteraction
+
+    def get_object(self):
+        code = self.kwargs['code']
+        return UserInteraction.objects.get(unique_id=code)
+
+
+
+"""    # TODO return none if the code has no interaction associated with it
+    def get(self, request, code):
+        profile = Profile.objects.get(user=request.user)
+        interactions = profile.interactions
+        if interactions is None:
+            Response()
+        return Response(UserInteractionSerializer(profile.interactions, many=True).data)"""
+
+
 class RequestUserProf(APIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
 
+    # TODO return none if user does not exist
     def get(self, request, pk):
         user_obj = User.objects.get(id=pk)
         profile = Profile.objects.get(user=user_obj)

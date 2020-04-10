@@ -20,6 +20,7 @@ class TestAuthentication(APITestCase):
     def setUp(self) -> None:
         self.test_user = None
         self.test_profile = None
+
         self.client = Client(enforce_csrf_checks=True)
 
         self.setup_user()
@@ -150,6 +151,10 @@ class TestInteractionEndpoints(APITestCase):
     def setUp(self) -> None:
         self.test_user = None
         self.test_profile = None
+
+        self.test_user2 = None
+        self.test_profile2 = None
+
         self.client = APIClient(enforce_csrf_checks=True)
         self.token = None
 
@@ -163,6 +168,14 @@ class TestInteractionEndpoints(APITestCase):
         self.test_profile = Profile.brand_new(user=self.test_user)
         self.token = Token.objects.get(user=self.test_user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+    def setup_interaction_test(self):
+        self.test_user2 = User.objects.create(username="blah", password="fake password", email="fake@email.com")
+        self.test_profile2 = Profile.brand_new(user=self.test_user2)
+        interaction = UserInteraction.start(creator=self.test_profile2)
+        interaction.add_participants([self.test_profile])
+
+        return interaction
 
     def test_auth_required(self):
         client = APIClient(enforce_csrf_checks=True)
@@ -262,3 +275,15 @@ class TestInteractionEndpoints(APITestCase):
         # Tests that the interaction was not ended
         interaction = UserInteraction.objects.get(creator=prof)
         self.assertFalse(interaction.has_ended)
+
+    def test_get_profiles_interactions(self):
+        interaction = self.setup_interaction_test()
+        key = Token.objects.get(user=self.test_user2)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {key}')
+
+        url = reverse('get_interaction', kwargs={'code': interaction.unique_id})
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(len(parsed.keys()), 5)
+
