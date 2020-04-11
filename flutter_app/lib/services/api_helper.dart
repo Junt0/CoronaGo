@@ -1,4 +1,4 @@
-import 'package:flutter_app/services/user_service.dart';
+import 'package:flutter_app/models/auth_user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -79,7 +79,7 @@ class APIAuth {
 
   Future<bool> signup(AuthUser user) async {
     http.Response response =
-        await this._signupRequest(user.username, user.password, user.email);
+        await this._signupRequest(user.getUsername(), user.getPassword(), user.getEmail());
     return this.helper.requestSuccessful(response);
   }
 
