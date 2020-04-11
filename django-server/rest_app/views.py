@@ -11,6 +11,7 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -28,13 +29,24 @@ def home(request):
     return render(request, 'home.html')
 
 
+class GetProfile(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
+    serializer_class = ProfileSerializer
+    model = Profile
+
+    def get_object(self):
+        username = self.kwargs['username']
+        user = get_object_or_404(User, username=username)
+        return Profile.objects.get(user=user)
+
+
 class GetProfileInteractions(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
     serializer_class = UserInteractionSerializer
     model = UserInteraction
 
     def get_queryset(self):
-        user = self.request.user
-        profile = Profile.objects.get(user=user)
+        profile = Profile.objects.get(user=self.request.user)
         return profile.interactions
 
 
@@ -48,12 +60,11 @@ class GetInteraction(generics.RetrieveAPIView):
         return UserInteraction.objects.get(unique_id=code)
 
 
-class RequestUserProf(generics.RetrieveAPIView):
+class RequestProfile(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
     serializer_class = ProfileSerializer
     model = Profile
 
-    # TODO return none if user does not exist
     def get_object(self):
         user = self.request.user
         return Profile.objects.get(user=user)

@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.test import TestCase, Client
@@ -120,7 +121,7 @@ class TestUserProfileEndpoints(APITestCase):
         self.user_token = Token.objects.get(user=self.test_user)
 
     def test_auth_required(self):
-        url = reverse('profile_info', kwargs={'pk': self.test_profile.pk})
+        url = reverse('request_profile', kwargs={'pk': self.test_profile.pk})
         response = self.client.get(url)
 
         # 401 code means unauthorized
@@ -134,7 +135,7 @@ class TestUserProfileEndpoints(APITestCase):
         self.test_user.is_active = False
         self.test_user.save()
 
-        url = reverse('profile_info', kwargs={'pk': self.test_profile.pk})
+        url = reverse('request_profile', kwargs={'pk': self.test_profile.pk})
         response = self.client.get(url)
         self.assertEquals(response.status_code, 401)
 
@@ -143,9 +144,22 @@ class TestUserProfileEndpoints(APITestCase):
         self.test_user.is_active = True
         self.test_user.save()
 
-        url = reverse('profile_info', kwargs={'pk': self.test_profile.pk})
+        url = reverse('request_profile', kwargs={'pk': self.test_profile.pk})
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
+
+    def test_get_profile_from_email(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.user_token.key)
+        self.test_user.is_active = True
+        self.test_user.save()
+
+        url = reverse('email_profile', kwargs={'username': self.test_user.username})
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(float(Decimal(parsed['risk'])), self.test_profile.risk)
+        self.assertEquals(parsed['user']['email'], self.test_user.email)
+        self.assertEquals(parsed['user']['username'], self.test_user.username)
 
 
 class TestInteractionEndpoints(APITestCase):
@@ -161,6 +175,7 @@ class TestInteractionEndpoints(APITestCase):
 
         self.setup_user()
 
+
     def setup_user(self):
         self.test_user = User.objects.create(username="testusername", email="test@gmail.com")
         self.test_user.set_password("test_pass")
@@ -172,10 +187,14 @@ class TestInteractionEndpoints(APITestCase):
 
     def setup_interaction_test(self):
         self.test_user2 = User.objects.create(username="blah", password="fake password", email="fake@email.com")
+        self.test_user2.is_active = True
+        self.test_user2.save()
         self.test_profile2 = Profile.brand_new(user=self.test_user2)
+        self.test_profile2.save()
+        self.token = Token.objects.get(user=self.test_user2)
         interaction = UserInteraction.start(creator=self.test_profile2)
         interaction.add_participants([self.test_profile])
-
+        interaction.save()
         return interaction
 
     def test_auth_required(self):
@@ -291,12 +310,13 @@ class TestInteractionEndpoints(APITestCase):
 
     def test_get_profiles_interactions(self):
         interaction = self.setup_interaction_test()
-        key = Token.objects.get(user=self.test_user2)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {key}')
+        key_string = f"Token {self.token}"
+        self.client.credentials(HTTP_AUTHORIZATION=key_string)
 
         url = reverse('profile_interactions')
         response = self.client.get(url)
         parsed = json.loads(response.content)
+
         self.assertEquals(response.status_code, 200)
         self.assertEquals(len(parsed), 1)
         self.assertEquals(parsed, UserInteractionSerializer(self.test_profile2.interactions, many=True).data)

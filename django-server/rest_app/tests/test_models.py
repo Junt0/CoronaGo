@@ -7,7 +7,6 @@ from rest_app.models import Profile, UserInteraction
 from django.utils import timezone
 import pytz
 
-# TODO make test to check that participants are not added as duplicates in many to many
 
 class ProfileTests(TestCase):
     def setUp(self):
@@ -60,7 +59,6 @@ class ProfileTests(TestCase):
 
         result = self.test_profile.interactions
         self.assertEquals(None, result)
-
 
     def test_has_no_running_interactions(self):
         interaction = UserInteraction.start(self.test_profile)
