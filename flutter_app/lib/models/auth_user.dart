@@ -5,13 +5,35 @@ class AuthUser {
   String _email;
   String _password;
   String _API_KEY;
-  Box hive = Hive.box('USER');
+  Box hive;
 
-  AuthUser();
+  AuthUser() {
+    this._initHive();
+  }
+
+  AuthUser.testing(Box mockBox) {
+    this.hive = mockBox;
+  }
+
+  AuthUser.fromHive() {
+    this._initHive();
+    this.loadFromHive();
+  }
+
+  void loadFromHive() {
+    _username = hive.get("username");
+    _email = hive.get("email");
+    _API_KEY = hive.get("API_KEY");
+  }
+
+  void _initHive() {
+    Hive.openBox('USER');
+    hive = Hive.box('USER');
+  }
 
   String getUsername() => _username;
-  String getEmail() => _username;
-  String getPassword() => _username;
+  String getEmail() => _email;
+  String getPassword() => _password;
 
   String getAPIKey({bool load = false}) {
     if (load) this.loadAPIKey();
@@ -30,7 +52,6 @@ class AuthUser {
 
   void setPassword(String password) {
     this._password = password;
-    this.saveToHive(field: "password");
   }
 
   void setAPIKey(String key) async {
@@ -38,8 +59,8 @@ class AuthUser {
     this.saveToHive(field: "API_KEY");
   }
 
-  Map attributesToMap(List<String> attributeNames) {
-    Map parsedFieldMap = new Map();
+  Map<String, dynamic> attributesToMap(List<String> attributeNames) {
+    Map<String, dynamic> parsedFieldMap = new Map();
     Map allFields = this._classAttributes();
 
     for (String name in attributeNames) {
@@ -72,13 +93,6 @@ class AuthUser {
     return this._API_KEY != null;
   }
 
-  AuthUser.loadFromHive() {
-    _username = hive.get("username");
-    _email = hive.get("email");
-    _password = hive.get("password");
-    _API_KEY = hive.get("API_KEY");
-  }
-
   bool isNull(List<String> attributes) {
     Map fields = this._classAttributes();
 
@@ -93,6 +107,9 @@ class AuthUser {
   void saveToHive({field = "all"}) {
     Map fields = this._classAttributes();
 
+    if (field == 'password')
+      return null;
+    
     if (field == "all") {
       for (var item in fields.keys) {
         hive.put(item, fields[item]);

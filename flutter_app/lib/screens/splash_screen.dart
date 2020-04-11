@@ -20,7 +20,7 @@ class _SplashScreen extends State<SplashScreen> {
   void attemptLogin() async {
     Stopwatch dur = new Stopwatch()..start();
 
-    AuthUser user = AuthUser.loadFromHive();
+    AuthUser user = AuthUser.fromHive();
     APIAuth auth = new APIAuth(user);
     bool success = await auth.login(user);
 

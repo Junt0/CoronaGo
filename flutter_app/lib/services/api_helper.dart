@@ -32,7 +32,6 @@ class APIHelper {
     String serverErrorMsg = this.getErrorMessage(response);
     int statusNearestHundreth = (response.statusCode / 100).floor() * 100;
 
-    // TODO make exception for 300 code
     Map<int, Object> httpErrorCode = {
       500: APIServerError(serverErrorMsg),
       400: APIAuthError(serverErrorMsg),

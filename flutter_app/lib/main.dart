@@ -21,7 +21,7 @@ void main() async {
 }
 
 Future<String> attemptLogin() async {
-  AuthUser user = AuthUser.loadFromHive();
+  AuthUser user = AuthUser.fromHive();
   APIAuth auth = new APIAuth(user);
   bool success = await auth.login(user);
 
