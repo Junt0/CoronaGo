@@ -4,7 +4,7 @@ class Profile {
   String _email = "";
   String _username;
 
-  Profile.fromJson(Map<String, dynamic> parsedJson) {
+  Profile.fromResponse(Map<String, dynamic> parsedJson) {
     _risk = parsedJson['risk'];
     _email = parsedJson['user']['email'];
     _username = parsedJson['user']['username'];

@@ -33,7 +33,7 @@ class AuthUser{
     this.saveToHive(field: "password");
   }
 
-  void storeAPIKey(String key) async {
+  void setAPIKey(String key) async {
     this._API_KEY = key;
     this.saveToHive(field: "API_KEY");
   }

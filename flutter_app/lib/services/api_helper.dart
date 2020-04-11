@@ -106,7 +106,7 @@ class APIAuth {
         http.Response response = await this._sendTokenRequest();
         if (this.helper.requestSuccessful(response)) {
           String key = this.helper.getResponseAttribute(response, "token");
-          user.storeAPIKey(key);
+          user.setAPIKey(key);
 
           loggedIn = true;
         }

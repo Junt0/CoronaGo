@@ -7,10 +7,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/screens/screenslib.dart';
 import 'package:flutter_app/services/api_helper.dart';
-import 'package:flutter_app/services/user_service.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
+
+import 'models/auth_user.dart';
 
 void main() async {
   await Hive.initFlutter();
