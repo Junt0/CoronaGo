@@ -1,20 +1,20 @@
 import 'package:hive/hive.dart';
 
-class AuthUser{
+class AuthUser {
   String _username;
   String _email;
   String _password;
   String _API_KEY;
+  Box hive = Hive.box('USER');
 
   AuthUser();
 
   String getUsername() => _username;
   String getEmail() => _username;
   String getPassword() => _username;
-  
+
   String getAPIKey({bool load = false}) {
-    if (load)
-      this.loadAPIKey();
+    if (load) this.loadAPIKey();
     return this._API_KEY;
   }
 
@@ -60,10 +60,8 @@ class AuthUser{
     return fields;
   }
 
-
   Future<String> loadAPIKey() async {
-    var box = Hive.box('USER');
-    String key = box.get('API_KEY');
+    String key = hive.get('API_KEY');
 
     this._API_KEY = key;
     return key;
@@ -75,12 +73,10 @@ class AuthUser{
   }
 
   AuthUser.loadFromHive() {
-    Box userBox = Hive.box('USER');
-
-    _username = userBox.get("username");
-    _email = userBox.get("email");
-    _password = userBox.get("password");
-    _API_KEY = userBox.get("API_KEY");
+    _username = hive.get("username");
+    _email = hive.get("email");
+    _password = hive.get("password");
+    _API_KEY = hive.get("API_KEY");
   }
 
   bool isNull(List<String> attributes) {
@@ -95,20 +91,18 @@ class AuthUser{
   }
 
   void saveToHive({field = "all"}) {
-    Box userBox = Hive.box('USER');
     Map fields = this._classAttributes();
 
     if (field == "all") {
       for (var item in fields.keys) {
-        userBox.put(item, fields[item]);
+        hive.put(item, fields[item]);
       }
     } else {
-      userBox.put(field, fields[field]);
+      hive.put(field, fields[field]);
     }
   }
 
   void clearHive() async {
-    var box = Hive.box('USER');
-    box.clear();
+    hive.clear();
   }
 }
