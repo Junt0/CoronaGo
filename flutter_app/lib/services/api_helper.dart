@@ -2,6 +2,7 @@ import 'package:flutter_app/models/auth_user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+
 // TODO comment api helper
 class APIHelper {
   static const String domain = "http://192.168.0.19:8000/";
@@ -70,6 +71,7 @@ class APIAuth {
   AuthUser user;
   APIHelper helper;
   bool authenticated = false;
+  http.Client client = new http.Client();
 
   APIAuth(AuthUser user) {
     this.user = user;
@@ -84,12 +86,11 @@ class APIAuth {
   }
 
   Future<http.Response> _signupRequest(String username, password, email) async {
-    Map requestBody =
-        this.user.attributesToMap(['username', 'password', 'email']);
+    Map requestBody = this.user.attributesToMap(['username', 'password', 'email']);
 
     try {
       http.Response response =
-          await http.post(helper.getURL("signup"), body: requestBody);
+          await client.post(helper.getURL("signup"), body: requestBody);
       return response;
     } catch (e) {
       return null;
@@ -125,7 +126,7 @@ class APIAuth {
 
     try {
       http.Response response =
-          await http.post(helper.getURL("get_token"), body: requestBody);
+          await client.post(helper.getURL("get_token"), body: requestBody);
       return response;
     } catch (e) {
       return null;
