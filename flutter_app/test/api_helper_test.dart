@@ -1,8 +1,11 @@
 import 'package:flutter_app/services/api_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'dart:convert';
+import 'package:mockito/mockito.dart';
+
 
 void main() {
   group('Testing APIHelper', () {
@@ -68,7 +71,9 @@ void main() {
   });
 
   group('Testing APIAuth', () {
-    test("Testing signup request", () {});
+    test("Testing signup request", () {
+
+    });
     test("Testing token request", () {});
   });
 }
