@@ -73,11 +73,12 @@ class CreateInteraction(APIView):
             interaction = UserInteraction.start(creator=prof)
 
             return Response({
-                'interaction_code': interaction.unique_id
+                'interaction_code': interaction.unique_id,
+                'detail': 'Interaction successfully created',
             })
         else:
             return Response({
-                'error': 'You are only able to have one interaction running at a time'
+                'detail': 'You can only have one interaction running at a time'
             }, status=403)
 
 
@@ -97,12 +98,12 @@ class JoinInteraction(APIView):
             interaction.add_participants([user_profile])
             return Response({
                 'interaction_code': interaction.unique_id,
-                'success': 'Interaction was joined successfully!'
+                'detail': 'The interaction was joined'
             })
-        else:
-            return Response({
-                'error': 'You are only able to have one interaction running at a time'
-            })
+            
+        return Response({
+            'detail': 'You are only able to have one interaction running at a time'
+        }, status=403)
 
 
 class EndInteraction(APIView):
@@ -118,13 +119,9 @@ class EndInteraction(APIView):
         interaction = self.get_object(code)
         if self.is_creator(request.user, interaction):
             interaction.end()
-            return Response({
-                'success': 'The interaction was ended'
-            })
+            return Response({'detail': 'The interaction was ended'})
         else:
-            return Response({
-                'error': 'The creator of the interaction can only end it'
-            })
+            return Response({'detail': 'Only the creator of the interaction can end it'}, status=403)
 
     def is_creator(self, profile: Profile, interaction: UserInteraction):
         return profile == interaction.creator.user
@@ -144,17 +141,15 @@ class AuthSignup(APIView):
             if user is not None:
                 profile = Profile.brand_new(user)
                 profile.send_verification_email()
-                return Response({
-                    'success': 'Please check your email for a verification link'
-                })
-        return Response({
-            'error': 'An error has occurred with the creation of your account'
-        })
+                return Response({'detail': 'Please check your email for a verification link'})
+            else:
+                return Response({'detail': 'A user with those credentials already exists'}, status=403)
+        return Response({'detail': 'Invalid info was sent'}, status=400)
 
     def signup(self, email, username, password):
         User = get_user_model()
 
-        # create a user if no users with the same email exist. Email is already validated by the form
+        # Create a user if no users with the same email exist.
         try:
             user = User.objects.get(email=email)
             return None
@@ -197,4 +192,4 @@ class AuthGetToken(ObtainAuthToken):
             token, created = Token.objects.get_or_create(user=user)
             return Response({'token': token.key})
         else:
-            return Response({'error': 'Please verify your account with the confirmation email'})
+            return Response({'detail': 'Please check your email for a verification link'})
