@@ -2,7 +2,6 @@ import 'package:flutter_app/models/auth_user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
 // TODO comment api helper
 class APIHelper {
   static const String domain = "http://192.168.0.19:8000/";
@@ -15,7 +14,7 @@ class APIHelper {
   };
   bool requestSuccessful(http.Response response) {
     try {
-      this._throwProperAPIException(response);
+      this.throwProperAPIException(response);
       return true;
     } catch (e) {
       print(e.toString());
@@ -24,7 +23,7 @@ class APIHelper {
   }
 
   // Depending on the status code it will throw an exception with the proper error message
-  void _throwProperAPIException(http.Response response) {
+  void throwProperAPIException(http.Response response) {
     // If there is no response from the server
     if (response == null) {
       throw APIConnectionError();
@@ -60,7 +59,7 @@ class APIHelper {
     return jsonDecode(response.body);
   }
 
-  String getResponseAttribute(http.Response response, String attribute) {
+  dynamic getResponseAttribute(http.Response response, String attribute) {
     Map decoded = this.responseToMap(response);
     bool hasAttribute = decoded.containsKey(attribute);
     return hasAttribute ? decoded[attribute] : null;
@@ -80,13 +79,14 @@ class APIAuth {
   }
 
   Future<bool> signup(AuthUser user) async {
-    http.Response response =
-        await this._signupRequest(user.getUsername(), user.getPassword(), user.getEmail());
+    http.Response response = await this._signupRequest(
+        user.getUsername(), user.getPassword(), user.getEmail());
     return this.helper.requestSuccessful(response);
   }
 
   Future<http.Response> _signupRequest(String username, password, email) async {
-    Map requestBody = this.user.attributesToMap(['username', 'password', 'email']);
+    Map requestBody =
+        this.user.attributesToMap(['username', 'password', 'email']);
 
     try {
       http.Response response =
