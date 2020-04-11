@@ -1,11 +1,11 @@
+from collections import OrderedDict
+
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from rest_app.models import Profile, UserInteraction
 from rest_app.serializers import UserSerializer, UserInteractionSerializer, ProfileSerializer
-from collections import OrderedDict
-from decimal import Decimal
 
 
 class TestUserSerializer(APITestCase):

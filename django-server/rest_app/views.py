@@ -1,28 +1,22 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
-from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView, View
-from rest_framework import viewsets
+from django.views.generic import View
+from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import get_object_or_404
-from rest_framework.mixins import RetrieveModelMixin
-from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rest_app.custom_permissions import IsVerified
 from rest_app.models import Profile, UserInteraction
+from rest_app.serializers import ProfileSerializer, UserSignupSerializer, UserInteractionSerializer
 from rest_app.tokens import account_activation_token
-from rest_app.serializers import UserSerializer, ProfileSerializer, UserSignupSerializer, UserInteractionSerializer
-from rest_framework import generics, mixins
-from django.middleware.csrf import get_token
 
 
 def home(request):
@@ -144,7 +138,8 @@ class AuthSignup(APIView):
         serializer = UserSignupSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.data
-            user = self.signup(data['email'], data['username'], data['password'])
+            user = self.signup(
+                data['email'], data['username'], data['password'])
 
             if user is not None:
                 profile = Profile.brand_new(user)
@@ -194,10 +189,10 @@ class VerifyAccount(View):
 class AuthGetToken(ObtainAuthToken):
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
         val = serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-
         if user.is_active:
             token, created = Token.objects.get_or_create(user=user)
             return Response({'token': token.key})

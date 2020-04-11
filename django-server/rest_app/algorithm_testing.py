@@ -1,12 +1,11 @@
-import functools
-from datetime import timedelta, datetime
-
-import networkx as nx
-import matplotlib.pyplot as plt
-from random import randrange, sample, choice
 import random
-
+from datetime import timedelta, datetime
+from random import randrange, sample
 from timeit import default_timer as timer
+
+import matplotlib.pyplot as plt
+import networkx as nx
+
 
 def timeit(method):
     def timed(*args, **kw):

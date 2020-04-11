@@ -1,13 +1,10 @@
 import uuid
-from random import randint
 from typing import List
 
 from django.conf import settings
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail, EmailMessage
-from django.db import models
 from django.contrib.auth.models import User
-
+from django.core.mail import EmailMessage
+from django.db import models
 # Create your models here.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -17,7 +14,6 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
 
-from rest_app import exceptions
 from rest_app import tokens
 
 
@@ -59,7 +55,6 @@ class Profile(models.Model):
             return interaction
         return None
 
-
     @property
     def has_running_interactions(self):
         return UserInteraction.objects.filter(participants__in=[self], end_time=None).count() > 0
@@ -73,12 +68,14 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 
 class UserInteraction(models.Model):
-    unique_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    unique_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
 
     meet_time = models.DateTimeField(auto_now=True)
     end_time = models.DateTimeField(null=True)
 
-    creator = models.ForeignKey(Profile, on_delete=models.SET_NULL, related_name="creator", null=True)
+    creator = models.ForeignKey(
+        Profile, on_delete=models.SET_NULL, related_name="creator", null=True)
     participants = models.ManyToManyField(Profile, related_name="participants")
 
     @classmethod

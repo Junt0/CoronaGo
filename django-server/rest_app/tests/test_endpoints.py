@@ -2,10 +2,10 @@ import json
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import Client
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APIRequestFactory, APIClient, APITestCase, RequestsClient
+from rest_framework.test import APIClient, APITestCase
 
 from rest_app.models import Profile, UserInteraction
 from rest_app.serializers import UserInteractionSerializer

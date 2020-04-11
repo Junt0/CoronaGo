@@ -1,11 +1,8 @@
-from django.test import TestCase
 from django.contrib.auth.models import User
-from django.urls import reverse
-
-from rest_app import exceptions
-from rest_app.models import Profile, UserInteraction
+from django.test import TestCase
 from django.utils import timezone
-import pytz
+
+from rest_app.models import Profile, UserInteraction
 
 
 class ProfileTests(TestCase):

@@ -15,8 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework import routers
-from rest_app import views
 
 urlpatterns = [
     path('', include('rest_app.urls')),
