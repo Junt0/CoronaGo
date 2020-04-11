@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_app/models/auth_user.dart';
+import 'package:flutter_app/models/profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mockito/mockito.dart';
@@ -88,7 +89,17 @@ void main() {
   });
 
   group('Testing Profile', () {
-    test("Testing fromJson using example", () {});
+    Map<String, dynamic> exampleJson = {
+      "user": {"username": "someuser", "email": "someuser@email.com"},
+      "risk": "0.1230"
+    };
+
+    test("Testing fromJson using example", () {
+      Profile profile = new Profile.fromResponse(exampleJson);
+      expect(profile.getUsername(), "someuser");
+      expect(profile.getEmail(), "someuser@email.com");
+      expect(profile.getRisk(), 0.1230);
+    });
   });
 
   group('Testing Interaction', () {
