@@ -22,7 +22,7 @@ class _SplashScreen extends State<SplashScreen> {
 
     AuthUser user = AuthUser.fromHive();
     APIAuth auth = new APIAuth(user);
-    bool success = await auth.login(user);
+    bool success = await auth.login();
 
     while (dur.elapsed.inSeconds < 2) {
        sleep(new Duration(milliseconds: 250));

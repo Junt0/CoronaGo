@@ -1,3 +1,4 @@
+import 'package:flutter_app/models/auth_user.dart';
 import 'package:flutter_app/services/api_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -6,8 +7,27 @@ import 'package:http/testing.dart';
 import 'dart:convert';
 import 'package:mockito/mockito.dart';
 
+class MockBox extends Mock implements Box {}
+
+Map userMap = {
+  'username': "someuser",
+  'email': "email@email.com",
+  'password': "password",
+  'API_KEY': "abcd1234",
+};
+
+MockBox setupMockBox() {
+  var box = MockBox();
+
+  when(box.get("username")).thenReturn(userMap['username']);
+  when(box.get("email")).thenReturn(userMap['email']);
+  when(box.get("API_KEY")).thenReturn(userMap['API_KEY']);
+
+  return box;
+}
 
 void main() {
+  MockBox mockBox = setupMockBox();
   group('Testing APIHelper', () {
     test("Testing _throwProperAPIException with null response", () {});
     test("Testing _throwProperAPIException with 200 status code", () {
@@ -71,9 +91,71 @@ void main() {
   });
 
   group('Testing APIAuth', () {
-    test("Testing signup request", () {
-
+    AuthUser user;
+    setUp(() {
+      user = new AuthUser.testing(mockBox);
+      user.setPassword(userMap['password']);
+      user.loadFromHive();
     });
-    test("Testing token request", () {});
+
+    test("Testing signup request valid token", () async {
+      final api = APIAuth(user);
+      api.client = MockClient((request) async {
+        final mapJson = {
+          'detail': 'Please check your email for a verification link'
+        };
+        return Response(json.encode(mapJson), 200);
+      });
+      bool successful = await api.signup();
+      expect(successful, true);
+    });
+
+    test("Testing signup request invalid token", () async {
+      final api = APIAuth(user);
+      api.client = MockClient((request) async {
+        final mapJson = {'detail': 'Invalid info was sent'};
+        return Response(json.encode(mapJson), 403);
+      });
+      bool successful = await api.signup();
+      expect(successful, false);
+    });
+    test("Testing login valid", () async {
+      final api = APIAuth(user);
+      api.client = MockClient((request) async {
+        final mapJson = {'token': userMap['API_KEY']};
+        return Response(json.encode(mapJson), 200);
+      });
+      bool successful = await api.login();
+      expect(successful, true);
+    });
+
+    test("Testing login invalid server error", () async {
+      when(mockBox.get("API_KEY")).thenReturn(null);
+
+      final api = APIAuth(user);
+      api.client = MockClient((request) async {
+        final mapJson = {'detail': 'A server error occurred'};
+        return Response(json.encode(mapJson), 500);
+      });
+      bool successful = await api.login();
+      expect(successful, false);
+    });
+
+    test("Testing login null attribute", () async {
+      when(mockBox.get("API_KEY")).thenReturn(null);
+      user.setPassword(null);
+
+      final api = APIAuth(user);
+      bool successful = await api.login();
+      expect(successful, false);
+    });
+
+    test("Testing already logged in", () async {
+      when(mockBox.get("API_KEY")).thenReturn("somekey");
+
+      final api = APIAuth(user);
+      bool successful = await api.login();
+      expect(successful, true);
+    });
   });
 }

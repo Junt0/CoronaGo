@@ -23,7 +23,7 @@ void main() async {
 Future<String> attemptLogin() async {
   AuthUser user = AuthUser.fromHive();
   APIAuth auth = new APIAuth(user);
-  bool success = await auth.login(user);
+  bool success = await auth.login();
 
   if (success) {
     return OverviewScreen.id;

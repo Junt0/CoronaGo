@@ -29,12 +29,12 @@ class APIHelper {
       throw APIConnectionError();
     }
 
-    String serverErrorMsg = this.getErrorMessage(response);
+    String serverResponse = this.serverDetailResponse(response);
     int statusNearestHundreth = (response.statusCode / 100).floor() * 100;
 
     Map<int, Object> httpErrorCode = {
-      500: APIServerError(serverErrorMsg),
-      400: APIAuthError(serverErrorMsg),
+      500: APIServerError(serverResponse),
+      400: APIAuthError(serverResponse),
       300: null,
       200: null,
       null: null,
@@ -50,8 +50,8 @@ class APIHelper {
     return "$domain${urlSuffixes[ending]}";
   }
 
-  String getErrorMessage(http.Response response) {
-    return this.getResponseAttribute(response, "error");
+  String serverDetailResponse(http.Response response) {
+    return this.getResponseAttribute(response, "detail");
   }
 
   Map responseToMap(http.Response response) {
@@ -77,7 +77,7 @@ class APIAuth {
     this.user.loadAPIKey();
   }
 
-  Future<bool> signup(AuthUser user) async {
+  Future<bool> signup() async {
     http.Response response = await this._signupRequest(
         user.getUsername(), user.getPassword(), user.getEmail());
     return this.helper.requestSuccessful(response);
@@ -96,7 +96,7 @@ class APIAuth {
     }
   }
 
-  Future<bool> login(AuthUser user) async {
+  Future<bool> login() async {
     bool hasKey = await user.hasAPIKey();
     bool loggedIn = false;
 

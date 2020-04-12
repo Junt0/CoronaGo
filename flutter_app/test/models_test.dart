@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter_app/models/auth_user.dart';
 import 'package:flutter_app/models/interaction.dart';
@@ -6,9 +5,6 @@ import 'package:flutter_app/models/profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mockito/mockito.dart';
-import 'package:path_provider/path_provider.dart' as path;
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:collection/collection.dart';
 
 class MockBox extends Mock implements Box {}
 

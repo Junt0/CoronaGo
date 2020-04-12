@@ -23,7 +23,7 @@ class _LoginScreen extends State<LoginScreen> {
     } else {
       form.save();
       APIAuth auth = new APIAuth(user);
-      bool successful = await auth.login(user);
+      bool successful = await auth.login();
 
       if (successful) {
         this.showMessage('Logged in successfully!', color: Colors.green[400]);
