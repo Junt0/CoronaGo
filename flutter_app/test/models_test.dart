@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter_app/models/auth_user.dart';
+import 'package:flutter_app/models/interaction.dart';
 import 'package:flutter_app/models/profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path_provider/path_provider.dart' as path;
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:collection/collection.dart';
 
 class MockBox extends Mock implements Box {}
 
@@ -95,7 +97,7 @@ void main() {
     };
 
     test("Testing fromJson using example", () {
-      Profile profile = new Profile.fromResponse(exampleJson);
+      Profile profile = new Profile.fromJson(exampleJson);
       expect(profile.getUsername(), "someuser");
       expect(profile.getEmail(), "someuser@email.com");
       expect(profile.getRisk(), 0.1230);
@@ -103,8 +105,39 @@ void main() {
   });
 
   group('Testing Interaction', () {
-    test("Testing fromJson", () {});
-    test("Testing _loadParticipants from example", () {});
-    test("Testing _loadDateTime from string or null", () {});
+    Map<String, dynamic> profileJson = {
+      "user": {"username": "someuser1", "email": "someuser1@email.com"},
+      "risk": "0.1230"
+    };
+    Map<String, dynamic> profileJson2 = {
+      "user": {"username": "someuser2", "email": "someuser2@email.com"},
+      "risk": "0.4534"
+    };
+    Map<String, dynamic> profileJson3 = {
+      "user": {"username": "someuser3", "email": "someuser3@email.com"},
+      "risk": "0.9063"
+    };
+    Profile profile1 = Profile.fromJson(profileJson);
+    Profile profile2 = Profile.fromJson(profileJson2);
+    Profile profile3 = Profile.fromJson(profileJson3);
+
+    DateTime now = DateTime.now();
+    String isoDate = now.toIso8601String();
+
+    Map<String, dynamic> interactionJson = {
+      "unique_id": "ff111ef4-e2c8-446c-98e6-2c75f1d7b202",
+      "meet_time": isoDate,
+      "end_time": null,
+      "creator": profileJson,
+      "participants": [profileJson, profileJson2, profileJson3]
+    };
+
+    test("Testing fromJson", () {
+      Interaction meeting = new Interaction.fromResponse(interactionJson);
+      expect(meeting.getUUID(), "ff111ef4-e2c8-446c-98e6-2c75f1d7b202");
+      expect(meeting.getMeetTime(), now);
+      expect(meeting.getEndTime(), null);
+      expect(meeting.getParticipants(), [profile1, profile2, profile3]);
+    });
   });
 }

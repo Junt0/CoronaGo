@@ -23,7 +23,7 @@ class Interaction {
   List<Profile> _loadParticipants(List<Map> particpants) {
     List<Profile> profiles = new List<Profile>();
     for (Map<String, dynamic> profileJson in particpants) {
-      profiles.add(Profile.fromResponse(profileJson));
+      profiles.add(Profile.fromJson(profileJson));
     }
     return profiles;
   }
