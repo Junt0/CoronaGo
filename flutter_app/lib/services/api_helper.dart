@@ -1,17 +1,25 @@
+import 'dart:io';
+
 import 'package:flutter_app/models/auth_user.dart';
+import 'package:flutter_app/models/interaction.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 // TODO comment api helper
 class APIHelper {
-  static const String domain = "http://192.168.0.19:8000/";
-  static Map<String, String> urlSuffixes = {
+  static const String address = "0.0.0.0"; //192.168.0.19
+  static const int port = 8000;
+  static const String scheme =
+      'http'; // PRODUCTION TODO make https request instead of http in production!!!!!
+
+  static Map<String, String> unencodedPath = {
     'signup': 'api/auth/signup/',
     'get_token': 'api/auth/',
     'join_interaction': 'api/interaction/join/',
     'create_interaction': 'api/interaction/create/',
     'end_interaction': 'api/interaction/end/',
   };
+
   bool requestSuccessful(http.Response response) {
     try {
       this.throwProperAPIException(response);
@@ -46,8 +54,18 @@ class APIHelper {
     }
   }
 
+  // Returns a url
   String getURL(String ending) {
-    return "$domain${urlSuffixes[ending]}";
+    String url = "http://$address";
+    if (port != null) {
+      url += ":${port.toString()}";
+    }
+    url += unencodedPath[ending];
+    return url;
+  }
+
+  static String getPath(String name) {
+    return unencodedPath[name];
   }
 
   String serverDetailResponse(http.Response response) {
@@ -62,6 +80,29 @@ class APIHelper {
     Map decoded = this.responseToMap(response);
     bool hasAttribute = decoded.containsKey(attribute);
     return hasAttribute ? decoded[attribute] : null;
+  }
+
+  http.Request createRequest(String method, String path, [Map body, Map headers]) {
+    http.Request unauthenticatedRequest = new http.Request(
+      method,
+      Uri(
+        host: APIHelper.address,
+        path: path,
+        port: APIHelper.port,
+        scheme: APIHelper.scheme,
+      ),
+    );
+
+    unauthenticatedRequest.bodyFields = body;
+    for (String key in headers.keys) {
+      unauthenticatedRequest.headers[key] = headers[key];
+    }
+    return unauthenticatedRequest;
+  }
+
+  Future<http.Response> sendRequest(http.Request request) async {
+    http.StreamedResponse streamedResponse = await request.send();
+    return await http.Response.fromStream(streamedResponse);
   }
 }
 
@@ -135,6 +176,17 @@ class APIAuth {
   void logout() {
     user.clearHive();
     user = new AuthUser();
+  }
+
+  http.Request authenticatedRequest(String method, String path) {
+    http.Request request = this.helper.createRequest(method, path);
+    request = this.makeRequestAuthenticated(request);
+    return request;
+  }
+
+  http.Request makeRequestAuthenticated(http.Request request) {
+    request.headers['Authorization'] = 'Token ${this.user.getAPIKey()}';
+    return request;
   }
 }
 
