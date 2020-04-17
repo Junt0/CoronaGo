@@ -73,7 +73,7 @@ void main() {
     });
     test("Testing getUrl", () {
       APIHelper api = new APIHelper();
-      String expectedURL = "${APIHelper.domain}api/auth/signup/";
+      String expectedURL = "${APIHelper.scheme}://${APIHelper.address}:${APIHelper.port}/api/auth/signup/";
       expect(api.getURL("signup"), expectedURL);
     });
     test("Testing requestSuccessful bad request", () {
@@ -100,7 +100,7 @@ void main() {
 
     test("Testing signup request valid token", () async {
       final api = APIAuth(user);
-      api.client = MockClient((request) async {
+      api.helper.client = MockClient((request) async {
         final mapJson = {
           'detail': 'Please check your email for a verification link'
         };
@@ -112,7 +112,7 @@ void main() {
 
     test("Testing signup request invalid token", () async {
       final api = APIAuth(user);
-      api.client = MockClient((request) async {
+      api.helper.client = MockClient((request) async {
         final mapJson = {'detail': 'Invalid info was sent'};
         return Response(json.encode(mapJson), 403);
       });
@@ -121,7 +121,7 @@ void main() {
     });
     test("Testing login valid", () async {
       final api = APIAuth(user);
-      api.client = MockClient((request) async {
+      api.helper.client = MockClient((request) async {
         final mapJson = {'token': userMap['API_KEY']};
         return Response(json.encode(mapJson), 200);
       });
@@ -133,7 +133,7 @@ void main() {
       when(mockBox.get("API_KEY")).thenReturn(null);
 
       final api = APIAuth(user);
-      api.client = MockClient((request) async {
+      api.helper.client = MockClient((request) async {
         final mapJson = {'detail': 'A server error occurred'};
         return Response(json.encode(mapJson), 500);
       });

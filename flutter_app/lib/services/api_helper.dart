@@ -9,8 +9,8 @@ import 'dart:convert';
 class APIHelper {
   static const String address = "0.0.0.0"; //192.168.0.19
   static const int port = 8000;
-  static const String scheme =
-      'http'; // PRODUCTION TODO make https request instead of http in production!!!!!
+  static const String scheme = 'http'; // PRODUCTION TODO make https request instead of http in production!!!!!
+  http.Client client = new http.Client();
 
   static Map<String, String> unencodedPath = {
     'signup': 'api/auth/signup/',
@@ -56,12 +56,17 @@ class APIHelper {
 
   // Returns a url
   String getURL(String ending) {
-    String url = "http://$address";
-    if (port != null) {
-      url += ":${port.toString()}";
+    String scheme = "${APIHelper.scheme}://";
+    String address = APIHelper.address;
+    String port = "";
+    String path = "/${unencodedPath[ending]}";
+
+    //Puts the port into the string if it is available
+    if (APIHelper.port != null) {
+      port = ":${APIHelper.port.toString()}";
     }
-    url += unencodedPath[ending];
-    return url;
+
+    return scheme + address + port + path;
   }
 
   static String getPath(String name) {
@@ -82,7 +87,10 @@ class APIHelper {
     return hasAttribute ? decoded[attribute] : null;
   }
 
-  http.Request createRequest(String method, String path, [Map body, Map headers]) {
+  http.Request createRequest(String method, String path, {Map body, Map headers}) {
+    if (body == null) body = {};
+    if (headers == null) headers = {};
+
     http.Request unauthenticatedRequest = new http.Request(
       method,
       Uri(
@@ -93,7 +101,7 @@ class APIHelper {
       ),
     );
 
-    unauthenticatedRequest.bodyFields = body;
+    unauthenticatedRequest.body = json.encode(body);
     for (String key in headers.keys) {
       unauthenticatedRequest.headers[key] = headers[key];
     }
@@ -101,7 +109,7 @@ class APIHelper {
   }
 
   Future<http.Response> sendRequest(http.Request request) async {
-    http.StreamedResponse streamedResponse = await request.send();
+    http.StreamedResponse streamedResponse = await this.client.send(request);
     return await http.Response.fromStream(streamedResponse);
   }
 }
@@ -110,7 +118,6 @@ class APIAuth {
   AuthUser user;
   APIHelper helper;
   bool authenticated = false;
-  http.Client client = new http.Client();
 
   APIAuth(AuthUser user) {
     this.user = user;
@@ -125,12 +132,11 @@ class APIAuth {
   }
 
   Future<http.Response> _signupRequest(String username, password, email) async {
-    Map requestBody =
-        this.user.attributesToMap(['username', 'password', 'email']);
-
+    Map requestBody = this.user.attributesToMap(['username', 'password', 'email']);
+    http.Request signupRequest = this.helper.createRequest("post", APIHelper.getPath("signup"), body: requestBody);
+    
     try {
-      http.Response response =
-          await client.post(helper.getURL("signup"), body: requestBody);
+      http.Response response = await this.helper.sendRequest(signupRequest);
       return response;
     } catch (e) {
       return null;
@@ -163,10 +169,9 @@ class APIAuth {
 
   Future<http.Response> _sendTokenRequest() async {
     Map requestBody = this.user.attributesToMap(['username', 'password']);
-
+    http.Request loginRequest = this.helper.createRequest("post", APIHelper.getPath("login"), body: requestBody);
     try {
-      http.Response response =
-          await client.post(helper.getURL("get_token"), body: requestBody);
+      http.Response response = await this.helper.sendRequest(loginRequest);
       return response;
     } catch (e) {
       return null;
