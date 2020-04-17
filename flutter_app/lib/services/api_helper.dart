@@ -195,6 +195,49 @@ class APIAuth {
   }
 }
 
+class InteractionEndpoints extends APIAuth {
+  InteractionEndpoints(AuthUser user) : super(user);
+
+  Future<Interaction> join(String uuid) async {
+    http.Response response = await this._joinRequest(uuid);
+    if (this.helper.requestSuccessful(response)) {
+      return Interaction.fromResponse(this.helper.responseToMap(response)); 
+    } else {
+      return null;
+    }
+  }
+
+  Future<http.Response> _joinRequest(String uuid) async {
+    String path = APIHelper.getPath("join_interaction") + "$uuid/";
+    http.Request joinRequest = this.helper.createRequest("get", path);
+    try {
+      return await this.helper.sendRequest(joinRequest);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Interaction> create() async {
+    http.Response response = await this._createRequest();
+    if (this.helper.requestSuccessful(response)) {
+      return Interaction.fromResponse(this.helper.responseToMap(response)); 
+    } else {
+      return null;
+    }
+  }
+
+  Future<http.Response> _createRequest() async {
+    String path = APIHelper.getPath("create_interaction");
+    http.Request joinRequest = this.helper.createRequest("get", path);
+    try {
+      return await this.helper.sendRequest(joinRequest);
+    } catch (e) {
+      return null;
+    }
+  }
+
+}
+
 class APIConnectionError implements Exception {
   String errorMessage() {
     return 'The API refused to connect';
