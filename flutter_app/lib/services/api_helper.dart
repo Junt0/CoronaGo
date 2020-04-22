@@ -7,17 +7,22 @@ import 'dart:convert';
 
 // TODO comment api helper
 class APIHelper {
-  static const String address = "0.0.0.0"; //192.168.0.19
+  /* WARNING WHEN TESTING WITH THE DJANGO SERVER MAKE SURE TO RUN ON 0.0.0.0:8000
+  AND FIND YOUR COMPUTERS HOSTNAME BY DOING   hostname -I   and find an address that works
+  by going to chrome and attempting to connection to  [address to test]:8000 on the test
+  device. You should end up on the CoronaGo homepage
+  */
+  static const String address = "192.168.99.222";
   static const int port = 8000;
   static const String scheme = 'http'; // PRODUCTION TODO make https request instead of http in production!!!!!
   http.Client client = new http.Client();
 
   static Map<String, String> unencodedPath = {
-    'signup': 'api/auth/signup/',
-    'get_token': 'api/auth/',
-    'join_interaction': 'api/interaction/join/',
-    'create_interaction': 'api/interaction/create/',
-    'end_interaction': 'api/interaction/end/',
+    'signup': '/api/auth/signup/',
+    'get_token': '/api/auth/',
+    'join_interaction': '/api/interaction/join/',
+    'create_interaction': '/api/interaction/create/',
+    'end_interaction': '/api/interaction/end/',
   };
 
   bool requestSuccessful(http.Response response) {
@@ -87,30 +92,24 @@ class APIHelper {
     return hasAttribute ? decoded[attribute] : null;
   }
 
-  http.Request createRequest(String method, String path, {Map body, Map headers}) {
+  http.Request createRequest(String method, String path, {Map<String, String> body, Map headers}){
     if (body == null) body = {};
     if (headers == null) headers = {};
+    String authority = "${APIHelper.address}:${APIHelper.port}";
+    http.Request unauthenticatedRequest = new http.Request(method, Uri.http(authority, path));
 
-    http.Request unauthenticatedRequest = new http.Request(
-      method,
-      Uri(
-        host: APIHelper.address,
-        path: path,
-        port: APIHelper.port,
-        scheme: APIHelper.scheme,
-      ),
-    );
-
-    unauthenticatedRequest.body = json.encode(body);
+    unauthenticatedRequest.bodyFields = body;
     for (String key in headers.keys) {
       unauthenticatedRequest.headers[key] = headers[key];
     }
+    //unauthenticatedRequest.finalize();
     return unauthenticatedRequest;
   }
 
   Future<http.Response> sendRequest(http.Request request) async {
     http.StreamedResponse streamedResponse = await this.client.send(request);
-    return await http.Response.fromStream(streamedResponse);
+    http.Response response = await http.Response.fromStream(streamedResponse);
+    return response;
   }
 }
 
@@ -169,7 +168,7 @@ class APIAuth {
 
   Future<http.Response> _sendTokenRequest() async {
     Map requestBody = this.user.attributesToMap(['username', 'password']);
-    http.Request loginRequest = this.helper.createRequest("post", APIHelper.getPath("login"), body: requestBody);
+    http.Request loginRequest = this.helper.createRequest("POST", APIHelper.getPath("get_token"), body: requestBody);
     try {
       http.Response response = await this.helper.sendRequest(loginRequest);
       return response;
