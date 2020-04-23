@@ -8,6 +8,7 @@ class OverviewScreen extends StatefulWidget {
 }
 
 class _OverviewScreen extends State<OverviewScreen> {
+  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   void logoutUser() {
     AuthUser user = AuthUser.fromHive();
@@ -15,6 +16,7 @@ class _OverviewScreen extends State<OverviewScreen> {
     auth.logout();
     Navigator.pushReplacementNamed(context, AuthScreen.id);
   }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -23,8 +25,23 @@ class _OverviewScreen extends State<OverviewScreen> {
         children: <Widget>[
           Text("This is the overview screen"),
           RaisedButton(
-            onPressed: () => this.logoutUser(),
-            child: Text("Logout")
+              onPressed: () => this.logoutUser(), child: Text("Logout")),
+          RaisedButton(
+            onPressed: () async {
+              try {
+                Interaction interaction = await Interaction.fromQrCode(
+                    AuthUser.fromHive(), scaffoldKey);
+                print("going to display code");
+                Navigator.of(context)
+                    .pushNamed(CodeScreen.id, arguments: interaction);
+              } catch (e) {}
+            },
+            child: Text("Join an interaction"),
+            padding: EdgeInsets.all(8.0),
+          ),
+          RaisedButton(
+            //onPressed: Navigator.of(context).pushNamed(routeName),
+            child: Text('Start an interaction'),
           ),
         ],
       ),

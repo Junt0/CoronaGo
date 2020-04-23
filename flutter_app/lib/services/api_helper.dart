@@ -209,6 +209,7 @@ class InteractionEndpoints extends APIAuth {
   Future<http.Response> _joinRequest(String uuid) async {
     String path = APIHelper.getPath("join_interaction") + "$uuid/";
     http.Request joinRequest = this.helper.createRequest("get", path);
+    this.makeRequestAuthenticated(joinRequest);
     try {
       return await this.helper.sendRequest(joinRequest);
     } catch (e) {
@@ -234,7 +235,6 @@ class InteractionEndpoints extends APIAuth {
       return null;
     }
   }
-
 }
 
 class APIConnectionError implements Exception {

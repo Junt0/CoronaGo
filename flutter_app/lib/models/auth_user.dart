@@ -59,8 +59,8 @@ class AuthUser {
     this.saveToHive(field: "API_KEY");
   }
 
-  Map<String, dynamic> attributesToMap(List<String> attributeNames) {
-    Map<String, dynamic> parsedFieldMap = new Map();
+  Map<String, String> attributesToMap(List<String> attributeNames) {
+    Map<String, String> parsedFieldMap = new Map<String, String>();
     Map allFields = this._classAttributes();
 
     for (String name in attributeNames) {
@@ -72,10 +72,10 @@ class AuthUser {
 
   Map _classAttributes() {
     var fields = {
-      'username': _username,
-      'email': _email,
-      'password': _password,
-      'API_KEY': _API_KEY,
+      'username': _username.toString(),
+      'email': _email.toString(),
+      'password': _password.toString(),
+      'API_KEY': _API_KEY.toString(),
     };
 
     return fields;
@@ -97,7 +97,7 @@ class AuthUser {
     Map fields = this._classAttributes();
 
     for (var attr in attributes) {
-      if (fields[attr] == null) {
+      if (fields[attr] == null || fields[attr]=="null") {
         return true;
       }
     }
