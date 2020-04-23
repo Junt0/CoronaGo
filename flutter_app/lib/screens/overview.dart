@@ -29,11 +29,8 @@ class _OverviewScreen extends State<OverviewScreen> {
           RaisedButton(
             onPressed: () async {
               try {
-                Interaction interaction = await Interaction.fromQrCode(
-                    AuthUser.fromHive(), scaffoldKey);
-                print("going to display code");
-                Navigator.of(context)
-                    .pushNamed(CodeScreen.id, arguments: interaction);
+                Interaction interaction = await Interaction.fromQrCode(AuthUser.fromHive(), scaffoldKey);
+                //Navigator.of(context).pushNamed(CodeScreen.id, arguments: interaction);
               } catch (e) {}
             },
             child: Text("Join an interaction"),

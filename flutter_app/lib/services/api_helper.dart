@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_app/models/auth_user.dart';
 import 'package:flutter_app/models/interaction.dart';
 import 'package:http/http.dart' as http;
@@ -42,6 +40,13 @@ class APIHelper {
       throw APIConnectionError();
     }
 
+    // If the server returns a error
+    String errorResponse = this.getResponseAttribute(response, "error");
+    if (errorResponse != null) {
+      throw APIInvalidRequest(errorResponse);
+    }
+
+
     String serverResponse = this.serverDetailResponse(response);
     int statusNearestHundreth = (response.statusCode / 100).floor() * 100;
 
@@ -82,12 +87,12 @@ class APIHelper {
     return this.getResponseAttribute(response, "detail");
   }
 
-  Map responseToMap(http.Response response) {
+  static Map responseToMap(http.Response response) {
     return jsonDecode(response.body);
   }
 
   dynamic getResponseAttribute(http.Response response, String attribute) {
-    Map decoded = this.responseToMap(response);
+    Map decoded = responseToMap(response);
     bool hasAttribute = decoded.containsKey(attribute);
     return hasAttribute ? decoded[attribute] : null;
   }
@@ -200,7 +205,9 @@ class InteractionEndpoints extends APIAuth {
   Future<Interaction> join(String uuid) async {
     http.Response response = await this._joinRequest(uuid);
     if (this.helper.requestSuccessful(response)) {
-      return Interaction.fromResponse(this.helper.responseToMap(response)); 
+      Interaction inter = Interaction();
+      inter.setUUID(APIHelper.responseToMap(response)['interaction_code']); 
+      return inter;
     } else {
       return null;
     }
@@ -220,7 +227,7 @@ class InteractionEndpoints extends APIAuth {
   Future<Interaction> create() async {
     http.Response response = await this._createRequest();
     if (this.helper.requestSuccessful(response)) {
-      return Interaction.fromResponse(this.helper.responseToMap(response)); 
+      return Interaction.fromResponse(APIHelper.responseToMap(response)); 
     } else {
       return null;
     }

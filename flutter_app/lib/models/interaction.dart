@@ -15,11 +15,10 @@ class Interaction {
   Interaction();
 
   Interaction.fromResponse(Map<String, dynamic> parsedJson) {
-    _uuid = parsedJson['unique_id'];
+    _uuid = parsedJson['interaction_code'];
     _participants = this._loadParticipants(parsedJson['participants']);
     _meetTime = this._loadDateTime(parsedJson['meet_time']);
     _endTime = this._loadDateTime(parsedJson['end_time']);
-
   }
 
   static Future<Interaction> fromQrCode(AuthUser user, GlobalKey<ScaffoldState> scaffoldKey) async {
@@ -27,14 +26,15 @@ class Interaction {
     Interaction newInteraction = new Interaction();
     
     String uuid = await newInteraction.scanQr(scaffoldKey);
-    print(uuid);
     if(newInteraction.isUUIDValid(uuid)) {
       newInteraction = await endpoint.join(uuid);
-      if (newInteraction != null)
+      if (newInteraction != null) {
         return newInteraction;
-      throw Exception('Interaction join endpoint error');
+      }
+      
+      throw Exception('Failed to join interaction');
     } else {
-      throw Exception('Scanner error');
+      throw Exception('Scanner failed to function');
     }
   }
 
@@ -42,6 +42,10 @@ class Interaction {
   List<Profile> getParticipants() => _participants;
   DateTime getMeetTime() => _meetTime;
   DateTime getEndTime() => _endTime;
+
+  void setUUID(String uuid) {
+    this._uuid = uuid;
+  }
 
   // TODO test this
   bool isUUIDValid(String uuid) {
