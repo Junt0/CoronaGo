@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/interaction/create/', views.CreateInteraction.as_view(), name="create_interaction"),
     path('api/interaction/join/<uuid:code>/', views.JoinInteraction.as_view(), name="join_interaction"),
     path('api/interaction/end/<uuid:code>/', views.EndInteraction.as_view(), name='end_interaction'),
+    
 
     path('api/user/', views.RequestProfile.as_view(), name="request_profile"),
     path('api/user/interactions/', views.GetProfileInteractions.as_view(), name="profile_interactions"),

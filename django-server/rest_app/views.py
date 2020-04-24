@@ -12,6 +12,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import mixins
 
 from rest_app.custom_permissions import IsVerified
 from rest_app.models import Profile, UserInteraction
@@ -44,7 +45,7 @@ class GetProfileInteractions(generics.ListAPIView):
         return profile.interactions
 
 
-class GetInteraction(generics.RetrieveAPIView):
+class GetInteraction(APIView):
     permission_classes = [permissions.IsAuthenticated, IsVerified]
     serializer_class = UserInteractionSerializer
     model = UserInteraction
@@ -52,6 +53,15 @@ class GetInteraction(generics.RetrieveAPIView):
     def get_object(self):
         code = self.kwargs['code']
         return UserInteraction.objects.get(unique_id=code)
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance)
+
+        request_prof = Profile.objects.get(user=request.user)
+        if request_prof not in instance.participants.all():
+            return Response(status=401)
+        return Response(serializer.data)
 
 
 class RequestProfile(generics.RetrieveAPIView):

@@ -306,6 +306,17 @@ class TestInteractionEndpoints(APITestCase):
         self.assertEquals(len(parsed.keys()), 5)
         self.assertEquals(parsed, UserInteractionSerializer(interaction).data)
 
+    def test_get_interaction_not_in_interaction(self):
+        interaction = self.setup_interaction_test()
+        interaction.participants.remove(self.test_profile2)
+        interaction.save()
+        key = Token.objects.get(user=self.test_user2)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {key}')
+
+        url = reverse('get_interaction', kwargs={'code': interaction.unique_id})
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 401)
+
     def test_get_profiles_interactions(self):
         interaction = self.setup_interaction_test()
         key_string = f"Token {self.token}"
