@@ -41,7 +41,7 @@ abstract class CachedClass {
     this._throwIfCacheMissing();
 
     Map<String, dynamic> fromDB = cache.get(key);
-    return this.fromCacheFormat(fromDB);
+    return fromCacheFormat(fromDB);
   }
 
   List<CachedClass> getAll() {
@@ -51,6 +51,7 @@ abstract class CachedClass {
     for (String key in cache.keys) {
       objects.add(this.getWithKey(key));
     }
+    return objects;
   }
 
   bool canUpdate(DateTime updatedTime) {
@@ -129,6 +130,7 @@ abstract class CachedClass {
       String match = regExp.firstMatch(field).toString();
       return match.length == field.length;
     }
+    return false;
   }
 }
 
