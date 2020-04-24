@@ -19,34 +19,23 @@ class _LoginScreen extends State<LoginScreen> {
     final FormState form = _formKey.currentState;
 
     if (!form.validate()) {
-      showMessage('The form is invalid! Please review and correct');
+      showMessage(_scaffoldKey, 'The form is invalid! Please review and correct');
     } else {
       form.save();
       APIAuth auth = new APIAuth(user);
-      bool successful = await auth.login(user);
+      bool successful = await auth.login();
 
       if (successful) {
-        this.showMessage('Logged in successfully!', color: Colors.green[400]);
+        showMessage(_scaffoldKey, 'Logged in successfully!', color: Colors.green[400]);
         await Future.delayed(Duration(milliseconds: 1500));
         // Removes all previous routes and adds new route to prevent going back to the original auth screen
         Navigator.of(context).pushNamedAndRemoveUntil(OverviewScreen.id, (Route<dynamic> route) => false);
       } else {
-        this.showMessage('An error has occured, please try again',
-            color: Theme.of(context).accentColor);
+        showMessage(_scaffoldKey, 'An error has occured, please try again', color: Theme.of(context).accentColor);
       }
-
     }
   }
 
-  void showMessage(String message, {Color color = Colors.red}) {
-    print(message);
-    _scaffoldKey.currentState.showSnackBar(
-      new SnackBar(
-        backgroundColor: color,
-        content: new Text(message),
-      ),
-    );
-  }
 
   String _validateUsername(String username) {
     if (username.isEmpty) return 'Empty';

@@ -24,7 +24,7 @@ class _SignupScreen extends State<SignupScreen> {
       form.save();
 
       APIAuth api = new APIAuth(user);
-      bool successful = await api.signup(user);
+      bool successful = await api.signup();
 
       if (successful) {
         this.showMessage('Signed up successfully!', color: Colors.green[400]);

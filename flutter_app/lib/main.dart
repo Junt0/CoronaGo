@@ -7,10 +7,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/screens/screenslib.dart';
 import 'package:flutter_app/services/api_helper.dart';
-import 'package:flutter_app/services/user_service.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
+
+import 'models/auth_user.dart';
 
 void main() async {
   await Hive.initFlutter();
@@ -20,9 +21,9 @@ void main() async {
 }
 
 Future<String> attemptLogin() async {
-  AuthUser user = AuthUser.loadFromHive();
+  AuthUser user = AuthUser.fromHive();
   APIAuth auth = new APIAuth(user);
-  bool success = await auth.login(user);
+  bool success = await auth.login();
 
   if (success) {
     return OverviewScreen.id;
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
           LoginScreen.id: (context) => LoginScreen(),
           SignupScreen.id: (context) => SignupScreen(),
           OverviewScreen.id: (context) => OverviewScreen(),
+          CodeScreen.id: (context) => CodeScreen(),
         });
   }
 }
@@ -106,25 +108,7 @@ class MyApp extends StatelessWidget {
 // 							))));
 //   }
 
-//   Future scan() async {
-//     try {
-//       String barcode = await BarcodeScanner.scan();
-//       setState(() => this.scannedCode = barcode);
-//     } on PlatformException catch (e) {
-//       if (e.code == BarcodeScanner.CameraAccessDenied) {
-//         setState(() {
-//           this.scannedCode = 'The user did not grant the camera permission!';
-//         });
-//       } else {
-//         setState(() => this.scannedCode = 'Unknown error: $e');
-//       }
-//     } on FormatException {
-//       setState(() => this.scannedCode =
-//           'null (User returned using the "back"-button before scanning anything. Result)');
-//     } catch (e) {
-//       setState(() => this.scannedCode = 'Unknown error: $e');
-//     }
-//   }
+
 
 // 	void randomQr() {
 // 		Random rand = new Random();

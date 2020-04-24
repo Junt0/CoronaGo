@@ -1,20 +1,31 @@
-import 'package:flutter_app/services/user_service.dart';
+import 'package:flutter_app/models/auth_user.dart';
+import 'package:flutter_app/models/interaction.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 // TODO comment api helper
 class APIHelper {
-  static const String domain = "http://192.168.0.19:8000/";
-  static Map<String, String> urlSuffixes = {
-    'signup': 'api/auth/signup/',
-    'get_token': 'api/auth/',
-    'join_interaction': 'api/interaction/join/',
-    'create_interaction': 'api/interaction/create/',
-    'end_interaction': 'api/interaction/end/',
+  /* WARNING WHEN TESTING WITH THE DJANGO SERVER MAKE SURE TO RUN ON 0.0.0.0:8000
+  AND FIND YOUR COMPUTERS HOSTNAME BY DOING   hostname -I   and find an address that works
+  by going to chrome and attempting to connection to  [address to test]:8000 on the test
+  device. You should end up on the CoronaGo homepage
+  */
+  static const String address = "192.168.99.222";
+  static const int port = 8000;
+  static const String scheme = 'http'; // PRODUCTION TODO make https request instead of http in production!!!!!
+  http.Client client = new http.Client();
+
+  static Map<String, String> unencodedPath = {
+    'signup': '/api/auth/signup/',
+    'get_token': '/api/auth/',
+    'join_interaction': '/api/interaction/join/',
+    'create_interaction': '/api/interaction/create/',
+    'end_interaction': '/api/interaction/end/',
   };
+
   bool requestSuccessful(http.Response response) {
     try {
-      this._throwProperAPIException(response);
+      this.throwProperAPIException(response);
       return true;
     } catch (e) {
       print(e.toString());
@@ -23,19 +34,25 @@ class APIHelper {
   }
 
   // Depending on the status code it will throw an exception with the proper error message
-  void _throwProperAPIException(http.Response response) {
+  void throwProperAPIException(http.Response response) {
     // If there is no response from the server
     if (response == null) {
       throw APIConnectionError();
     }
 
-    String serverErrorMsg = this.getErrorMessage(response);
+    // If the server returns a error
+    String errorResponse = this.getResponseAttribute(response, "error");
+    if (errorResponse != null) {
+      throw APIInvalidRequest(errorResponse);
+    }
+
+
+    String serverResponse = this.serverDetailResponse(response);
     int statusNearestHundreth = (response.statusCode / 100).floor() * 100;
 
-    // TODO make exception for 300 code
     Map<int, Object> httpErrorCode = {
-      500: APIServerError(serverErrorMsg),
-      400: APIAuthError(serverErrorMsg),
+      500: APIServerError(serverResponse),
+      400: APIAuthError(serverResponse),
       300: null,
       200: null,
       null: null,
@@ -47,22 +64,57 @@ class APIHelper {
     }
   }
 
+  // Returns a url
   String getURL(String ending) {
-    return "$domain${urlSuffixes[ending]}";
+    String scheme = "${APIHelper.scheme}://";
+    String address = APIHelper.address;
+    String port = "";
+    String path = "/${unencodedPath[ending]}";
+
+    //Puts the port into the string if it is available
+    if (APIHelper.port != null) {
+      port = ":${APIHelper.port.toString()}";
+    }
+
+    return scheme + address + port + path;
   }
 
-  String getErrorMessage(http.Response response) {
-    return this.getResponseAttribute(response, "error");
+  static String getPath(String name) {
+    return unencodedPath[name];
   }
 
-  Map responseToMap(http.Response response) {
+  String serverDetailResponse(http.Response response) {
+    return this.getResponseAttribute(response, "detail");
+  }
+
+  static Map responseToMap(http.Response response) {
     return jsonDecode(response.body);
   }
 
-  String getResponseAttribute(http.Response response, String attribute) {
-    Map decoded = this.responseToMap(response);
+  dynamic getResponseAttribute(http.Response response, String attribute) {
+    Map decoded = responseToMap(response);
     bool hasAttribute = decoded.containsKey(attribute);
     return hasAttribute ? decoded[attribute] : null;
+  }
+
+  http.Request createRequest(String method, String path, {Map<String, String> body, Map headers}){
+    if (body == null) body = {};
+    if (headers == null) headers = {};
+    String authority = "${APIHelper.address}:${APIHelper.port}";
+    http.Request unauthenticatedRequest = new http.Request(method, Uri.http(authority, path));
+
+    unauthenticatedRequest.bodyFields = body;
+    for (String key in headers.keys) {
+      unauthenticatedRequest.headers[key] = headers[key];
+    }
+    //unauthenticatedRequest.finalize();
+    return unauthenticatedRequest;
+  }
+
+  Future<http.Response> sendRequest(http.Request request) async {
+    http.StreamedResponse streamedResponse = await this.client.send(request);
+    http.Response response = await http.Response.fromStream(streamedResponse);
+    return response;
   }
 }
 
@@ -77,26 +129,25 @@ class APIAuth {
     this.user.loadAPIKey();
   }
 
-  Future<bool> signup(AuthUser user) async {
-    http.Response response =
-        await this._signupRequest(user.username, user.password, user.email);
+  Future<bool> signup() async {
+    http.Response response = await this._signupRequest(
+        user.getUsername(), user.getPassword(), user.getEmail());
     return this.helper.requestSuccessful(response);
   }
 
   Future<http.Response> _signupRequest(String username, password, email) async {
-    Map requestBody =
-        this.user.attributesToMap(['username', 'password', 'email']);
-
+    Map requestBody = this.user.attributesToMap(['username', 'password', 'email']);
+    http.Request signupRequest = this.helper.createRequest("post", APIHelper.getPath("signup"), body: requestBody);
+    
     try {
-      http.Response response =
-          await http.post(helper.getURL("signup"), body: requestBody);
+      http.Response response = await this.helper.sendRequest(signupRequest);
       return response;
     } catch (e) {
       return null;
     }
   }
 
-  Future<bool> login(AuthUser user) async {
+  Future<bool> login() async {
     bool hasKey = await user.hasAPIKey();
     bool loggedIn = false;
 
@@ -106,7 +157,7 @@ class APIAuth {
         http.Response response = await this._sendTokenRequest();
         if (this.helper.requestSuccessful(response)) {
           String key = this.helper.getResponseAttribute(response, "token");
-          user.storeAPIKey(key);
+          user.setAPIKey(key);
 
           loggedIn = true;
         }
@@ -122,10 +173,9 @@ class APIAuth {
 
   Future<http.Response> _sendTokenRequest() async {
     Map requestBody = this.user.attributesToMap(['username', 'password']);
-
+    http.Request loginRequest = this.helper.createRequest("POST", APIHelper.getPath("get_token"), body: requestBody);
     try {
-      http.Response response =
-          await http.post(helper.getURL("get_token"), body: requestBody);
+      http.Response response = await this.helper.sendRequest(loginRequest);
       return response;
     } catch (e) {
       return null;
@@ -135,6 +185,62 @@ class APIAuth {
   void logout() {
     user.clearHive();
     user = new AuthUser();
+  }
+
+  http.Request authenticatedRequest(String method, String path) {
+    http.Request request = this.helper.createRequest(method, path);
+    request = this.makeRequestAuthenticated(request);
+    return request;
+  }
+
+  http.Request makeRequestAuthenticated(http.Request request) {
+    request.headers['Authorization'] = 'Token ${this.user.getAPIKey()}';
+    return request;
+  }
+}
+
+class InteractionEndpoints extends APIAuth {
+  InteractionEndpoints(AuthUser user) : super(user);
+
+  Future<Interaction> join(String uuid) async {
+    http.Response response = await this._joinRequest(uuid);
+    if (this.helper.requestSuccessful(response)) {
+      Interaction inter = Interaction();
+      inter.setUUID(APIHelper.responseToMap(response)['interaction_code']); 
+      return inter;
+    } else {
+      return null;
+    }
+  }
+
+  Future<http.Response> _joinRequest(String uuid) async {
+    String path = APIHelper.getPath("join_interaction") + "$uuid/";
+    http.Request joinRequest = this.helper.createRequest("get", path);
+    this.makeRequestAuthenticated(joinRequest);
+    try {
+      return await this.helper.sendRequest(joinRequest);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Interaction> create() async {
+    http.Response response = await this._createRequest();
+    if (this.helper.requestSuccessful(response)) {
+      return Interaction.fromResponse(APIHelper.responseToMap(response)); 
+    } else {
+      return null;
+    }
+  }
+
+  Future<http.Response> _createRequest() async {
+    String path = APIHelper.getPath("create_interaction");
+    http.Request joinRequest = this.helper.createRequest("get", path);
+    try {
+      return await this.helper.sendRequest(joinRequest);
+    } catch (e) {
+      return null;
+    }
   }
 }
 
