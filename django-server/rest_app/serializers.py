@@ -4,6 +4,11 @@ from rest_framework import serializers
 from rest_app.models import Profile, UserInteraction
 
 
+class InteractionsLastModified(serializers.ModelSerializer):
+    class Meta:
+        model = UserInteraction
+        fields = ('unique_id', 'last_modified')
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

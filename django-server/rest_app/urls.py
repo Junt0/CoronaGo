@@ -30,10 +30,11 @@ urlpatterns = [
     path('api/user/', views.RequestProfile.as_view(), name="request_profile"),
     path('api/user/interactions/', views.GetProfileInteractions.as_view(), name="profile_interactions"),
     path('api/user/<str:username>/', views.GetProfile.as_view(), name="email_profile"),
+    path('api/user/interactions/last-modified/', views.LastModifiedInteractions.as_view(), name="last_modified"),
 
     path('api/auth/', views.AuthGetToken.as_view(), name="get_token"),
     path('api/auth/signup/', views.AuthSignup.as_view(), name="signup"),
     re_path(r'^api/auth/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-            views.VerifyAccount.as_view(), name='verify_email'),
+          views.VerifyAccount.as_view(), name='verify_email'),
 
 ]

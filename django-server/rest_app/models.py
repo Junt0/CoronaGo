@@ -77,6 +77,7 @@ class UserInteraction(models.Model):
     creator = models.ForeignKey(
         Profile, on_delete=models.SET_NULL, related_name="creator", null=True)
     participants = models.ManyToManyField(Profile, related_name="participants")
+    last_modified = models.DateTimeField(auto_now=True)
 
     @classmethod
     def start(cls, creator: Profile):
@@ -93,7 +94,6 @@ class UserInteraction(models.Model):
 
     def end(self):
         self.end_time = timezone.now()
-        self.ended = True
         self.save()
 
     @property

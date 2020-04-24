@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
 
 from rest_app.models import Profile, UserInteraction
-from rest_app.serializers import UserInteractionSerializer
+from rest_app.serializers import InteractionsLastModified, UserInteractionSerializer
 
 """def get_csrf_token(self):
 client = RequestsClient()
@@ -28,7 +28,7 @@ class TestAuthentication(APITestCase):
         self.setup_user()
 
     def setup_user(self):
-        self.test_user = User.objects.create(username="test username", email="test@gmail.com")
+        self.test_user = User.objects.create(username="testusername", email="test@gmail.com")
         self.test_user.set_password("test_pass")
         self.test_user.is_active = True
         self.test_user.save()
@@ -50,15 +50,14 @@ class TestAuthentication(APITestCase):
     def test_api_auth_signup_user_exists(self):
         # Test user already exists
         data = {
-            'email': 'test@gmail.com',
-            'username': 'test username',
-            'password': 'password',
+            'email': self.test_user.email,
+            'username': self.test_user.username,
+            'password': 'somepass1234',
         }
         url = reverse('signup')
         response = self.client.post(url, data=data)
 
-        self.assertEquals(response.status_code, 200)
-        self.assertTrue('error' in response.data.keys())
+        self.assertEquals(response.status_code, 403)
 
     def test_api_auth_signup_user_doesnt_exist(self):
         # Test user already exists
@@ -71,7 +70,6 @@ class TestAuthentication(APITestCase):
         response = self.client.post(url, data=data)
 
         self.assertEquals(response.status_code, 200)
-        self.assertTrue('success' in response.data.keys())
 
         user = User.objects.get(email=data['email'])
         profile = Profile.objects.get(user=user)
@@ -90,7 +88,7 @@ class TestAuthentication(APITestCase):
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
         self.assertTrue("Thank you" in str(response.content))
-        self.test_user = User.objects.get(username="test username")
+        self.test_user = User.objects.get(username="testusername")
         self.assertTrue(self.test_user.is_active)
 
         # Test expires after visit
@@ -121,13 +119,14 @@ class TestUserProfileEndpoints(APITestCase):
         self.user_token = Token.objects.get(user=self.test_user)
 
     def test_auth_required(self):
-        url = reverse('request_profile', kwargs={'pk': self.test_profile.pk})
+        url = reverse('request_profile')
         response = self.client.get(url)
 
         # 401 code means unauthorized
         self.assertEquals(response.status_code, 401)
         parsed = json.loads(response.content)
-        self.assertEquals(parsed['detail'], "Authentication credentials were not provided.")
+        self.assertEquals(
+            parsed['detail'], "Authentication credentials were not provided.")
 
     def test_has_auth_not_verified(self):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.user_token.key)
@@ -135,7 +134,7 @@ class TestUserProfileEndpoints(APITestCase):
         self.test_user.is_active = False
         self.test_user.save()
 
-        url = reverse('request_profile', kwargs={'pk': self.test_profile.pk})
+        url = reverse('request_profile')
         response = self.client.get(url)
         self.assertEquals(response.status_code, 401)
 
@@ -144,7 +143,7 @@ class TestUserProfileEndpoints(APITestCase):
         self.test_user.is_active = True
         self.test_user.save()
 
-        url = reverse('request_profile', kwargs={'pk': self.test_profile.pk})
+        url = reverse('request_profile')
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
@@ -174,7 +173,6 @@ class TestInteractionEndpoints(APITestCase):
         self.token = None
 
         self.setup_user()
-
 
     def setup_user(self):
         self.test_user = User.objects.create(username="testusername", email="test@gmail.com")
@@ -214,7 +212,7 @@ class TestInteractionEndpoints(APITestCase):
         interaction = UserInteraction.objects.get(creator=self.test_profile)
         parsed = json.loads(response.content)
 
-        self.assertEquals(parsed['interaction_code'], str(interaction.unique_id))
+        self.assertEquals(parsed['interaction_code'],str(interaction.unique_id))
 
     def test_create_interaction_has_others(self):
         interaction = UserInteraction.start(creator=self.test_profile)
@@ -223,8 +221,9 @@ class TestInteractionEndpoints(APITestCase):
         url = reverse('create_interaction')
         response = self.client.get(url)
         parsed = json.loads(response.content)
-
-        self.assertEquals('You are only able to have one interaction running at a time', parsed['error'])
+        self.assertEquals(response.status_code, 403)
+        self.assertEquals(
+            'You can only have one interaction running at a time', parsed['detail'])
 
     def test_join_interaction_no_others(self):
         # Sets up user with interaction
@@ -239,15 +238,15 @@ class TestInteractionEndpoints(APITestCase):
         response = self.client.get(url)
         parsed = json.loads(response.content)
 
-        self.assertEquals(parsed['interaction_code'], str(interaction.unique_id))
-        self.assertEquals(parsed['success'], 'Interaction was joined successfully!')
+        self.assertEquals(parsed['interaction_code'],str(interaction.unique_id))
         self.assertEquals(response.status_code, 200)
 
         # Tests user is added to interaction
         self.assertTrue(self.test_profile.has_running_interactions)
 
     def test_join_interaction_has_others(self):
-        new_user = User.objects.create(username="blah", password="fake password", email="fake@email.com")
+        new_user = User.objects.create(
+            username="blah", password="fake password", email="fake@email.com")
         prof = Profile.brand_new(user=new_user)
 
         # Asserts that the user is already in an interaction for the remainder of the test
@@ -259,8 +258,8 @@ class TestInteractionEndpoints(APITestCase):
         url = reverse('join_interaction', kwargs={'code': interaction.unique_id})
         response = self.client.get(url)
         parsed = json.loads(response.content)
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(parsed['error'], 'You are only able to have one interaction running at a time')
+        self.assertEquals(response.status_code, 403)
+        self.assertEquals(parsed['detail'], 'You are only able to have one interaction running at a time')
 
     def test_end_interaction_is_creator(self):
         interaction = UserInteraction.start(creator=self.test_profile)
@@ -272,7 +271,7 @@ class TestInteractionEndpoints(APITestCase):
         response = self.client.get(url)
         parsed = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(parsed['success'], 'The interaction was ended')
+        self.assertEquals(parsed['detail'], 'The interaction was ended')
 
         # Tests that the interaction was actually ended
         interaction = UserInteraction.objects.get(creator=self.test_profile)
@@ -289,8 +288,7 @@ class TestInteractionEndpoints(APITestCase):
         url = reverse('end_interaction', kwargs={'code': interaction.unique_id})
         response = self.client.get(url)
         parsed = json.loads(response.content)
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(parsed['error'], 'The creator of the interaction can only end it')
+        self.assertEquals(response.status_code, 403)
 
         # Tests that the interaction was not ended
         interaction = UserInteraction.objects.get(creator=prof)
@@ -320,3 +318,16 @@ class TestInteractionEndpoints(APITestCase):
         self.assertEquals(response.status_code, 200)
         self.assertEquals(len(parsed), 1)
         self.assertEquals(parsed, UserInteractionSerializer(self.test_profile2.interactions, many=True).data)
+
+    def test_get_profiles_interactions_last_modified(self):
+        interaction = self.setup_interaction_test()
+        key_string = f"Token {self.token}"
+        self.client.credentials(HTTP_AUTHORIZATION=key_string)
+
+        url = reverse('last_modified')
+        response = self.client.get(url)
+        parsed = json.loads(response.content)
+
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(len(parsed), 1)
+        self.assertEquals(parsed, InteractionsLastModified(self.test_profile2.interactions, many=True).data)

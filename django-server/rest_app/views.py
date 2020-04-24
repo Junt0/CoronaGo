@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from rest_app.custom_permissions import IsVerified
 from rest_app.models import Profile, UserInteraction
-from rest_app.serializers import ProfileSerializer, UserSignupSerializer, UserInteractionSerializer
+from rest_app.serializers import InteractionsLastModified, ProfileSerializer, UserInteractionSerializer, UserSignupSerializer
 from rest_app.tokens import account_activation_token
 
 
@@ -100,7 +100,7 @@ class JoinInteraction(APIView):
                 'interaction_code': interaction.unique_id,
                 'detail': 'The interaction was joined'
             })
-            
+
         return Response({
             'detail': 'You are only able to have one interaction running at a time'
         }, status=403)
@@ -127,6 +127,16 @@ class EndInteraction(APIView):
         return profile == interaction.creator.user
 
 
+class LastModifiedInteractions(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsVerified]
+    serializer_class = InteractionsLastModified
+    model = UserInteraction
+
+    def get_queryset(self):
+        profile = Profile.objects.get(user=self.request.user)
+        return profile.interactions
+
+
 class AuthSignup(APIView):
     authentication_classes = []
     permission_classes = [permissions.AllowAny]
@@ -142,9 +152,8 @@ class AuthSignup(APIView):
                 profile = Profile.brand_new(user)
                 profile.send_verification_email()
                 return Response({'detail': 'Please check your email for a verification link'})
-            else:
-                return Response({'detail': 'A user with those credentials already exists'}, status=403)
-        return Response({'detail': 'Invalid info was sent'}, status=400)
+
+        return Response({'detail': 'A user with those credentials already exists'}, status=403)
 
     def signup(self, email, username, password):
         User = get_user_model()
