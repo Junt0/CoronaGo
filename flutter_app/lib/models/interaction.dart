@@ -9,6 +9,7 @@ import 'auth_user.dart';
 
 class Interaction extends CachedClass {
   String key;
+  static String cacheName = "INTERACTION_BOX";
 
   String _uuid = "";
   List<Profile> _participants;
@@ -18,8 +19,15 @@ class Interaction extends CachedClass {
   DateTime lastUpdated;
   Map<String, Function> validators;
 
-  Interaction(){
-    this._loadValidators();
+  Interaction();
+
+  static Future<Interaction> init() async {
+    Interaction inter = new Interaction();
+
+    await inter.initCache(cacheName);
+    inter._loadValidators();
+
+    return inter;
   }
 
   Map<String, dynamic> toCacheFormat({bool excludeKey = true}) {  

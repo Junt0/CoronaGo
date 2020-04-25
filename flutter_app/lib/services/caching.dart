@@ -4,19 +4,22 @@ abstract class CachedClass {
   String key;
   DateTime lastUpdated;
   Map<String, Function> validators;
-  static Box cache;
-
-  CachedClass();
+  Box cache;
 
   // Should probably not include the key
   Map<String, dynamic> toCacheFormat();
   CachedClass fromCacheFormat(Map<String, dynamic> fromCache);
 
-  static Future<void> initCache(String cacheName) async {
-    CachedClass.cache = await Hive.openBox(cacheName);
+  Future<void> initCache(String cacheName) async {
+    if (Hive.isBoxOpen(cacheName)) {
+      this.cache = Hive.box(cacheName);
+    } else {
+      this.cache = await Hive.openBox(cacheName);
+    }
+
   }
 
-  void _throwIfCacheMissing() {
+  void throwIfCacheMissing() {
     if (cache == null) throw CacheStorageMissing();
 
     if (!cache.isOpen) throw CacheStorageMissing();
@@ -38,14 +41,14 @@ abstract class CachedClass {
   }
 
   CachedClass getWithKey(String key) {
-    this._throwIfCacheMissing();
+    this.throwIfCacheMissing();
 
     Map<String, dynamic> fromDB = cache.get(key);
     return fromCacheFormat(fromDB);
   }
 
   List<CachedClass> getAll() {
-    this._throwIfCacheMissing();
+    this.throwIfCacheMissing();
 
     List<CachedClass> objects = new List<CachedClass>();
     for (String key in cache.keys) {
@@ -59,7 +62,7 @@ abstract class CachedClass {
   }
 
   void updateEntry(CachedClass updatedObject) {
-    this._throwIfCacheMissing();
+    this.throwIfCacheMissing();
 
     Map<String, dynamic> toDB = this.toCacheFormat();
     cache.put(updatedObject.key, toDB);
@@ -67,7 +70,7 @@ abstract class CachedClass {
   
   // Updates all entries that have a difference in last modified
   void updateModified(List<CachedClass> objectsInCache) {
-    this._throwIfCacheMissing();
+    this.throwIfCacheMissing();
 
     List<CachedClass> objsToUpdate = new List<CachedClass>();
 
@@ -85,14 +88,14 @@ abstract class CachedClass {
   }
 
   void addEntry(CachedClass object) {
-    this._throwIfCacheMissing();
+    this.throwIfCacheMissing();
 
     object.validateFields();
     cache.put(object.key, this.toCacheFormat());
   }
 
   void addManyEntries(List<CachedClass> objects) {
-    this._throwIfCacheMissing();
+    this.throwIfCacheMissing();
     
     Map<String, Map<String, dynamic>> allEntries = new Map();
     for (CachedClass obj in objects) {
@@ -128,7 +131,7 @@ abstract class CachedClass {
       final regExp = new RegExp(
           r"[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$");
       RegExpMatch match = regExp.firstMatch(field);
-      
+
       if (match != null) {
         String actualUUID = field.substring(match.start, match.end);
         return actualUUID.length == field.length;
