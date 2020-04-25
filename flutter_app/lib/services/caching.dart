@@ -22,10 +22,10 @@ abstract class CachedClass {
     if (!cache.isOpen) throw CacheStorageMissing();
   }
 
-  void validateFields() {
+  void validateFields({bool enforceSameLength = false}) {
     Map<String, dynamic> fields = this.toCacheFormat();
 
-    if (validators.keys.length != fields.keys.length) {
+    if ((validators.keys.length != fields.keys.length) && enforceSameLength) {
       throw ValidatorFieldMismatch();
     }
 
@@ -127,8 +127,12 @@ abstract class CachedClass {
     if (isString(field)) {
       final regExp = new RegExp(
           r"[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$");
-      String match = regExp.firstMatch(field).toString();
-      return match.length == field.length;
+      RegExpMatch match = regExp.firstMatch(field);
+      
+      if (match != null) {
+        String actualUUID = field.substring(match.start, match.end);
+        return actualUUID.length == field.length;
+      }
     }
     return false;
   }

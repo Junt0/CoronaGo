@@ -28,16 +28,14 @@ class Interaction extends CachedClass {
   }
 
   Interaction fromCacheFormat(Map<String, dynamic> fromCache) {
-    Interaction inter = new Interaction();
+    this.uuid = fromCache['uuid'];
+    this.key = _uuid;
+    this.participants = this._loadParticipantsCache(fromCache['participants']);
+    this.meetTime = this._loadDateTime(fromCache['meetTime']);
+    this.endTime = this._loadDateTime(fromCache['endTime']);
+    this.lastUpdated = this._loadDateTime(fromCache['lastUpdated']);
 
-    inter.uuid = fromCache['uuid'];
-    inter.key = _uuid;
-    inter.participants = this._loadParticipantsCache(fromCache['participants']);
-    inter.meetTime = this._loadDateTime(fromCache['meetTime']);
-    inter.endTime = this._loadDateTime(fromCache['endTime']);
-    inter.lastUpdated = this._loadDateTime(fromCache['lastUpdated']);
-
-    return inter;
+    return this;
   }
 
   void _loadValidators() {
