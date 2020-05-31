@@ -16,8 +16,8 @@ import 'models/auth_user.dart';
 void main() async {
   await Hive.initFlutter();
   await Hive.openBox('USER');
-  String initial = await attemptLogin();
-  runApp(new MyApp(initial));
+  //String initial = await attemptLogin();
+  runApp(new MyApp(BluetoothTest.id));
 }
 
 Future<String> attemptLogin() async {
@@ -33,7 +33,7 @@ Future<String> attemptLogin() async {
 }
 
 class MyApp extends StatelessWidget {
-  String initalRoute = "SplashScreen.id";
+  String initalRoute = AuthScreen.id;
   MyApp(this.initalRoute);
 
   @override
@@ -61,6 +61,7 @@ class MyApp extends StatelessWidget {
           SignupScreen.id: (context) => SignupScreen(),
           OverviewScreen.id: (context) => OverviewScreen(),
           CodeScreen.id: (context) => CodeScreen(),
+          BluetoothTest.id: (context) => BluetoothTest(),
         });
   }
 }
